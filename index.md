@@ -38,10 +38,10 @@ With Elixir installed, you then need to update the configuration found in `confi
 
     {protocol, ip_address, port, optional(secure)}
 
-  *protocol*: Either udp or tcp. Provide entries for both for better network traversal support.
-  *ip_address*: The IP address to bind to. '0.0.0.0' binds to the first available local IP.
-  *port*: The port to bind to. 3478 is the standard unsecured TURN port and 5349 is the standard for a secured TURN port. However, you may also wish to support 80 and 443, too.
-  *secure*: If `:secure` is passed as the last item, then the port socket is opened using SSL (see certificates).
+- *protocol*: Either udp or tcp. Provide entries for both for better network traversal support.
+- *ip_address*: The IP address to bind to. '0.0.0.0' binds to the first available local IP.
+- *port*: The port to bind to. 3478 is the standard unsecured TURN port and 5349 is the standard for a secured TURN port. However, you may also wish to support 80 and 443, too.
+- *secure*: If `:secure` is passed as the last item, then the port socket is opened using SSL (see certificates).
 
 *server_ip*: The IP address to advertise in STUN/TURN packets.
 
