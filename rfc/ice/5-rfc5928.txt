@@ -1,0 +1,619 @@
+
+
+
+
+
+
+Internet Engineering Task Force (IETF)                 M. Petit-Huguenin
+Request for Comments: 5928                                  Unaffiliated
+Category: Standards Track                                    August 2010
+ISSN: 2070-1721
+
+
+     Traversal Using Relays around NAT (TURN) Resolution Mechanism
+
+Abstract
+
+   This document defines a resolution mechanism to generate a list of
+   server transport addresses that can be tried to create a Traversal
+   Using Relays around NAT (TURN) allocation.
+
+Status of This Memo
+
+   This is an Internet Standards Track document.
+
+   This document is a product of the Internet Engineering Task Force
+   (IETF).  It represents the consensus of the IETF community.  It has
+   received public review and has been approved for publication by the
+   Internet Engineering Steering Group (IESG).  Further information on
+   Internet Standards is available in Section 2 of RFC 5741.
+
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   http://www.rfc-editor.org/info/rfc5928.
+
+Copyright Notice
+
+   Copyright (c) 2010 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+
+
+
+
+
+
+Petit-Huguenin               Standards Track                    [Page 1]
+
+RFC 5928                     TURN Resolution                 August 2010
+
+
+Table of Contents
+
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  2
+   2.  Terminology  . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   3.  Resolution Mechanism . . . . . . . . . . . . . . . . . . . . .  3
+   4.  Examples . . . . . . . . . . . . . . . . . . . . . . . . . . .  6
+     4.1.  Multiple Protocols . . . . . . . . . . . . . . . . . . . .  6
+     4.2.  Remote Hosting . . . . . . . . . . . . . . . . . . . . . .  7
+     4.3.  Compatibility with TURN  . . . . . . . . . . . . . . . . .  8
+   5.  Security Considerations  . . . . . . . . . . . . . . . . . . .  8
+   6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  9
+     6.1.  RELAY Application Service Tag Registration . . . . . . . .  9
+     6.2.  turn.udp Application Protocol Tag Registration . . . . . .  9
+     6.3.  turn.tcp Application Protocol Tag Registration . . . . . .  9
+     6.4.  turn.tls Application Protocol Tag Registration . . . . . . 10
+   7.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 10
+   8.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+     8.1.  Normative References . . . . . . . . . . . . . . . . . . . 10
+     8.2.  Informative References . . . . . . . . . . . . . . . . . . 11
+
+1.  Introduction
+
+   The Traversal Using Relays around NAT (TURN) specification [RFC5766]
+   defines a process for a TURN client to find TURN servers by using DNS
+   SRV resource records, but this process does not let the TURN server
+   administrators provision the preferred TURN transport protocol
+   between the client and the server and does not allow the TURN client
+   to discover this preference.  This document defines an S-NAPTR
+   application [RFC3958] for this purpose.  This application defines
+   "RELAY" as an application service tag and "turn.udp", "turn.tcp", and
+   "turn.tls" as application protocol tags.
+
+   Another usage of the resolution mechanism described in this document
+   would be Remote Hosting as described in [RFC3958], Section 4.4.  For
+   example, a Voice over IP (VoIP) provider who does not want to deploy
+   TURN servers could use the servers deployed by another company but
+   could still want to provide configuration parameters to its customers
+   without explicitly showing this relationship.  The mechanism permits
+   one to implement this indirection, without preventing the company
+   hosting the TURN servers from managing them as it sees fit.
+
+   [TURN-URI] can be used as a convenient way of carrying the four
+   components (see Section 3) needed by the resolution mechanism
+   described in this document.  A reference implementation is available
+   [REF-IMPL].
+
+
+
+
+
+
+Petit-Huguenin               Standards Track                    [Page 2]
+
+RFC 5928                     TURN Resolution                 August 2010
+
+
+2.  Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+3.  Resolution Mechanism
+
+   The resolution mechanism is used only to create an allocation.  All
+   other transactions use the IP address, transport, and port used for a
+   successful allocation creation.  The resolution mechanism only
+   selects the transport used between the TURN client and the TURN
+   server.  The transport used by the allocation itself is selected by
+   the REQUESTED-TRANSPORT attribute as described in Section 6.1 of
+   [RFC5766].
+
+   The resolution algorithm uses a boolean flag, <secure>; an IP address
+   or domain name, <host>; a port number that can be empty, <port>; and
+   a transport name that can be "udp", "tcp", or empty, <transport> as
+   input.  These four parameters are part of the user configuration of
+   the TURN client.  The resolution mechanism also uses as input a list,
+   ordered by preference of supported TURN transports (UDP, TCP,
+   Transport Layer Security (TLS)), that is provided by the application
+   using the TURN client.  This list reflects the capabilities and
+   preferences of the application code that is using the S-NAPTR
+   resolver and TURN client, as opposed to the configuration parameters
+   that reflect the preferences of the user of the application.  The
+   output of the algorithm is a list of {IP address, transport, port}
+   tuples that a TURN client can try in order to create an allocation on
+   a TURN server.
+
+   An Allocate error response as specified in Section 6.4 of [RFC5766]
+   is processed as a failure, as specified by [RFC3958], Section 2.2.4.
+   The resolution stops when a TURN client gets a successful Allocate
+   response from a TURN server.  After an allocation succeeds or all the
+   allocations fail, the resolution context MUST be discarded, and the
+   resolution algorithm MUST be restarted from the beginning for any
+   subsequent allocation.  Servers temporarily blacklisted as described
+   in Section 6.4 of [RFC5766], specifically because of a 437, 486, or
+   508 error code, MUST NOT be used for the specified duration, even if
+   returned by a subsequent resolution.
+
+   First, the resolution algorithm checks that the parameters can be
+   resolved with the list of TURN transports supported by the
+   application:
+
+
+
+
+
+
+Petit-Huguenin               Standards Track                    [Page 3]
+
+RFC 5928                     TURN Resolution                 August 2010
+
+
+   o  If <secure> is false and <transport> is defined as "udp" but the
+      list of TURN transports supported by the application does not
+      contain UDP, then the resolution MUST stop with an error.
+
+   o  If <secure> is false and <transport> is defined as "tcp" but the
+      list of TURN transports supported by the application does not
+      contain TCP, then the resolution MUST stop with an error.
+
+   o  If <secure> is true and <transport> is defined as "udp", then the
+      resolution MUST stop with an error.
+
+   o  If <secure> is true and <transport> is defined as "tcp" but the
+      list of TURN transports supported by the application does not
+      contain TLS, then the resolution MUST stop with an error.
+
+   o  If <secure> is true and <transport> is not defined but the list of
+      TURN transports supported by the application does not contain TLS,
+      then the resolution MUST stop with an error.
+
+   o  If <transport> is defined but unknown, then the resolution MUST
+      stop with an error.
+
+   After verifying the validity of the parameters, the algorithm filters
+   the list of TURN transports supported by the application by removing
+   the UDP and TCP TURN transport if <secure> is true.  If the list of
+   TURN transports is empty after this filtering, the resolution MUST
+   stop with an error.
+
+   After filtering the list of TURN transports supported by the
+   application, the algorithm applies the steps described below.  Note
+   that in some steps, <secure> and <transport> have to be converted to
+   a TURN transport.  If <secure> is false and <transport> is defined as
+   "udp", then the TURN UDP transport is used.  If <secure> is false and
+   <transport> is defined as "tcp", then the TURN TCP transport is used.
+   If <secure> is true and <transport> is defined as "tcp", then the
+   TURN TLS transport is used.  This is summarized in Table 1.
+
+                +----------+-------------+----------------+
+                | <secure> | <transport> | TURN Transport |
+                +----------+-------------+----------------+
+                | false    | "udp"       | UDP            |
+                | false    | "tcp"       | TCP            |
+                | true     | "tcp"       | TLS            |
+                +----------+-------------+----------------+
+
+                                  Table 1
+
+
+
+
+
+Petit-Huguenin               Standards Track                    [Page 4]
+
+RFC 5928                     TURN Resolution                 August 2010
+
+
+   1.  If <host> is an IP address, then it indicates the specific IP
+       address to be used.  If <port> is not defined, then either the
+       default port declared in [RFC5766] for the "turn" SRV service
+       name if <secure> is false, or the "turns" SRV service name if
+       <secure> is true, MUST be used for contacting the TURN server.
+       If <transport> is defined, then <secure> and <transport> are
+       converted to a TURN transport as specified in Table 1.  If
+       <transport> is not defined, the filtered TURN transports
+       supported by the application are tried by preference order.  If
+       the TURN client cannot contact a TURN server with this IP address
+       and port on any of the transports supported by the application,
+       then the resolution MUST stop with an error.
+
+   2.  If <host> is a domain name and <port> is defined, then <host> is
+       resolved to a list of IP addresses via DNS A and AAAA queries.
+       If <transport> is defined, then <secure> and <transport> are
+       converted to a TURN transport as specified in Table 1.  If
+       <transport> is not defined, the filtered TURN transports
+       supported by the application are tried in preference order.  The
+       TURN client can choose the order to contact the resolved IP
+       addresses in any implementation-specific way.  If the TURN client
+       cannot contact a TURN server with this port, the transport or
+       list of transports, and the resolved IP addresses, then the
+       resolution MUST stop with an error.
+
+   3.  If <host> is a domain name and <port> is not defined but
+       <transport> is defined, then the SRV algorithm defined in
+       [RFC2782] is used to generate a list of IP address and port
+       tuples. <host> is used as Name, a value of false for <secure> as
+       "turn" for Service, a value of true for <secure> as "turns" for
+       Service, and <transport> as Protocol (Proto) in the SRV
+       algorithm. <secure> and <transport> are converted to a TURN
+       transport as specified in Table 1, and this transport is used
+       with each tuple for contacting the TURN server.  The SRV
+       algorithm recommends doing an A query if the SRV query returns an
+       error or no SRV RR; in this case, the default port declared in
+       [RFC5766] for the "turn" SRV service name if <secure> is false,
+       or the "turns" SRV service name if <secure> is true, MUST be used
+       for contacting the TURN server.  Also in this case, this
+       specification modifies the SRV algorithm by recommending an A and
+       AAAA query.  If the TURN client cannot contact a TURN server at
+       any of the IP address and port tuples returned by the SRV
+       algorithm with the transport converted from <secure> and
+       <transport>, then the resolution MUST stop with an error.
+
+
+
+
+
+
+
+Petit-Huguenin               Standards Track                    [Page 5]
+
+RFC 5928                     TURN Resolution                 August 2010
+
+
+   4.  If <host> is a domain name and <port> and <transport> are not
+       defined, then <host> is converted to an ordered list of IP
+       address, port, and transport tuples via the Straightforward
+       Naming Authority Pointer (S-NAPTR) algorithm defined in [RFC3958]
+       by using <host> as the initial target domain name and "RELAY" as
+       the application service tag.  The filtered list of TURN
+       transports supported by the application are converted in
+       application protocol tags by using "turn.udp" if the TURN
+       transport is UDP, "turn.tcp" if the TURN transport is TCP, and
+       "turn.tls" if the TURN transport is TLS.  The order to try the
+       application protocol tags is provided by the ranking of the first
+       set of NAPTR records.  If multiple application protocol tags have
+       the same ranking, the preferred order set by the application is
+       used.  If the first NAPTR query fails, the processing continues
+       in step 5.  If the TURN client cannot contact a TURN server with
+       any of the IP address, port, and transport tuples returned by the
+       S-NAPTR algorithm, then the resolution MUST stop with an error.
+
+   5.  If the first NAPTR query in the previous step does not return any
+       result, then the SRV algorithm defined in [RFC2782] is used to
+       generate a list of IP address and port tuples.  The SRV algorithm
+       is applied by using each transport in the filtered list of TURN
+       transports supported by the application for the Protocol (Proto),
+       <host> for the Name, "turn" for the Service if <secure> is false,
+       or "turns" for the Service if <secure> is true.  The same
+       transport that was used to generate a list of tuples is used with
+       each of these tuples for contacting the TURN server.  The SRV
+       algorithm recommends doing an A query if the SRV query returns an
+       error or no SRV RR; in this case, the default port declared in
+       [RFC5766] for the "turn" SRV service name if <secure> is false,
+       or the "turns" SRV service name if <secure> is true, MUST be used
+       for contacting the TURN server.  Also in this case, this
+       specification modifies the SRV algorithm by recommending an A and
+       AAAA query.  If the TURN client cannot contact a TURN server at
+       any of the IP address and port tuples returned by the SRV
+       algorithm with the transports from the filtered list, then the
+       resolution MUST stop with an error.
+
+4.  Examples
+
+4.1.  Multiple Protocols
+
+   With the DNS RRs in Figure 1 and an ordered TURN transport list of
+   {TLS, TCP, UDP}, the resolution algorithm will convert the parameters
+   (<secure>=false, <host>="example.net", <port>=empty,
+   <transport>=empty) to the list of IP address, port, and protocol
+   tuples in Table 2.
+
+
+
+
+Petit-Huguenin               Standards Track                    [Page 6]
+
+RFC 5928                     TURN Resolution                 August 2010
+
+
+   example.net.
+   IN NAPTR 100 10 "" RELAY:turn.udp "" datagram.example.net.
+   IN NAPTR 200 10 "" RELAY:turn.tcp:turn.tls "" stream.example.net.
+
+   datagram.example.net.
+   IN NAPTR 100 10 S RELAY:turn.udp "" _turn._udp.example.net.
+
+   stream.example.net.
+   IN NAPTR 100 10 S RELAY:turn.tcp "" _turn._tcp.example.net.
+   IN NAPTR 200 10 A RELAY:turn.tls "" a.example.net.
+
+   _turn._udp.example.net.
+   IN SRV   0 0 3478 a.example.net.
+
+   _turn._tcp.example.net.
+   IN SRV   0 0 5000 a.example.net.
+
+   a.example.net.
+   IN A     192.0.2.1
+
+                                 Figure 1
+
+
+                 +-------+----------+------------+------+
+                 | Order | Protocol | IP address | Port |
+                 +-------+----------+------------+------+
+                 | 1     | UDP      | 192.0.2.1  | 3478 |
+                 | 2     | TLS      | 192.0.2.1  | 5349 |
+                 | 3     | TCP      | 192.0.2.1  | 5000 |
+                 +-------+----------+------------+------+
+
+                                  Table 2
+
+4.2.  Remote Hosting
+
+   In the example in Figure 2, a VoIP provider (example.com) is using
+   the TURN servers managed by the administrators of the example.net
+   domain (defined in Figure 1).  The resolution algorithm using the
+   ordered TURN transport list of {TLS, TCP, UDP} would convert the same
+   parameters as in the previous example but with the <host> parameter
+   equal to "example.com" to the list of IP address, port, and protocol
+   tuples in Table 2.
+
+   example.com.
+   IN NAPTR 100 10 "" RELAY:turn.udp:turn.tcp:turn.tls "" example.net.
+
+                                 Figure 2
+
+
+
+
+Petit-Huguenin               Standards Track                    [Page 7]
+
+RFC 5928                     TURN Resolution                 August 2010
+
+
+4.3.  Compatibility with TURN
+
+   In deployments where it is not possible to guarantee that all TURN
+   clients will support the resolution mechanism described in this
+   document, the DNS configuration should be done in a way that works
+   with both this resolution mechanism and the mechanism described in
+   [RFC5766].  The DNS RRs in Figure 3 can be used in conjunction with
+   the DNS RRs in Figures 1 and 2 for this purpose.
+
+   _turn._udp.example.com.
+   IN SRV   0 0 3478 a.example.net.
+
+   _turn._tcp.example.com.
+   IN SRV   0 0 5000 a.example.net.
+
+   _turns._tcp.example.com.
+   IN SRV   0 0 5349 a.example.net.
+
+                                 Figure 3
+
+5.  Security Considerations
+
+   Security considerations for TURN are discussed in [RFC5766].
+
+   The application service tag and application protocol tags defined in
+   this document do not introduce any specific security issues beyond
+   the security considerations discussed in [RFC3958].  [RFC3958]
+   requests that an S-NAPTR application define some form of end-to-end
+   authentication to ensure that the correct destination has been
+   reached.  This is achieved by the Long-Term Credential Mechanism
+   defined in [RFC5389], which is mandatory for [RFC5766].
+
+   Additionally, the usage of TLS [RFC5246] has the capability to
+   address the requirement.  In this case, the client MUST verify the
+   identity of the server by following the identification procedure in
+   Section 7.2.2 of [RFC5389] and by using the value of the <host>
+   parameter as the identity of the server to be verified.
+
+   An implication of this is that the server's certificate could need to
+   be changed when SRV or NAPTR records are added.  For example, a
+   client using just A/AAAA records, and configured with
+   "turnserver.example.net", expects to find the name
+   "turnserver.example.net" in the certificate.  If a second client uses
+   SRV records and is configured with <host> parameter "example.com", it
+   expects to find "example.com" in the certificate, even if the SRV
+   record at _turns._tcp.example.com points to turnserver.example.net.
+
+
+
+
+
+Petit-Huguenin               Standards Track                    [Page 8]
+
+RFC 5928                     TURN Resolution                 August 2010
+
+
+6.  IANA Considerations
+
+   This section contains the registration information for one S-NAPTR
+   application service tag and three S-NAPTR application protocol tags
+   (in accordance with [RFC3958]).
+
+6.1.  RELAY Application Service Tag Registration
+
+   Application Protocol Tag: RELAY
+
+   Intended usage: See Section 3.
+
+   Interoperability considerations: N/A
+
+   Security considerations: See Section 5.
+
+   Relevant publications: RFC 5928
+
+   Contact information: Marc Petit-Huguenin <petithug@acm.org>
+
+   Author/Change controller: The IESG
+
+6.2.  turn.udp Application Protocol Tag Registration
+
+   Application Protocol Tag: turn.udp
+
+   Intended usage: See Section 3.
+
+   Interoperability considerations: N/A
+
+   Security considerations: See Section 5.
+
+   Relevant publications: RFC 5928
+
+   Contact information: Marc Petit-Huguenin <petithug@acm.org>
+
+   Author/Change controller: The IESG
+
+6.3.  turn.tcp Application Protocol Tag Registration
+
+   Application Protocol Tag: turn.tcp
+
+   Intended usage: See Section 3.
+
+   Interoperability considerations: N/A
+
+   Security considerations: See Section 5.
+
+
+
+
+Petit-Huguenin               Standards Track                    [Page 9]
+
+RFC 5928                     TURN Resolution                 August 2010
+
+
+   Relevant publications: RFC 5928
+
+   Contact information: Marc Petit-Huguenin <petithug@acm.org>
+
+   Author/Change controller: The IESG
+
+6.4.  turn.tls Application Protocol Tag Registration
+
+   Application Protocol Tag: turn.tls
+
+   Intended usage: See Section 3.
+
+   Interoperability considerations: N/A
+
+   Security considerations: See Section 5.
+
+   Relevant publications: RFC 5928
+
+   Contact information: Marc Petit-Huguenin <petithug@acm.org>
+
+   Author/Change controller: The IESG
+
+7.  Acknowledgements
+
+   Thanks to Cullen Jennings, Alexey Melnikov, Scott Bradner, Spencer
+   Dawkins, Pasi Eronen, Margaret Wasserman, Magnus Westerlund, Juergen
+   Schoenwaelder, Sean Turner, Ted Hardie, Dave Thaler, Alfred E.
+   Heggestad, Eilon Yardeni, Dan Wing, Alfred Hoenes, and Jim Kleck for
+   their comments, suggestions, and questions that helped to improve
+   this document.
+
+8.  References
+
+8.1.  Normative References
+
+   [RFC2119]   Bradner, S., "Key words for use in RFCs to Indicate
+               Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [RFC2782]   Gulbrandsen, A., Vixie, P., and L. Esibov, "A DNS RR for
+               specifying the location of services (DNS SRV)", RFC 2782,
+               February 2000.
+
+   [RFC3958]   Daigle, L. and A. Newton, "Domain-Based Application
+               Service Location Using SRV RRs and the Dynamic Delegation
+               Discovery Service (DDDS)", RFC 3958, January 2005.
+
+   [RFC5246]   Dierks, T. and E. Rescorla, "The Transport Layer Security
+               (TLS) Protocol Version 1.2", RFC 5246, August 2008.
+
+
+
+Petit-Huguenin               Standards Track                   [Page 10]
+
+RFC 5928                     TURN Resolution                 August 2010
+
+
+   [RFC5389]   Rosenberg, J., Mahy, R., Matthews, P., and D. Wing,
+               "Session Traversal Utilities for NAT (STUN)", RFC 5389,
+               October 2008.
+
+   [RFC5766]   Mahy, R., Matthews, P., and J. Rosenberg, "Traversal
+               Using Relays around NAT (TURN): Relay Extensions to
+               Session Traversal Utilities for NAT (STUN)", RFC 5766,
+               April 2010.
+
+8.2.  Informative References
+
+   [RFC2629]   Rose, M., "Writing I-Ds and RFCs using XML", RFC 2629,
+               June 1999.
+
+   [TURN-URI]  Petit-Huguenin, M., "Traversal Using Relays around NAT
+               (TURN) Uniform Resource Identifiers", Work in Progress,
+               January 2010.
+
+   [REF-IMPL]  Petit-Huguenin, M., "Reference Implementation of TURN
+               resolver and TURN URI parser", January 2010, <http://
+               debian.implementers.org/stable/source/turnuri.tar.gz>.
+
+Author's Address
+
+   Marc Petit-Huguenin
+   Unaffiliated
+
+   EMail: petithug@acm.org
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Petit-Huguenin               Standards Track                   [Page 11]
+

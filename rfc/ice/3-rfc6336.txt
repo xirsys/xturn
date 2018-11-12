@@ -1,0 +1,283 @@
+
+
+
+
+
+
+Internet Engineering Task Force (IETF)                     M. Westerlund
+Request for Comments: 6336                                      Ericsson
+Updates: 5245                                                 C. Perkins
+Category: Standards Track                          University of Glasgow
+ISSN: 2070-1721                                                July 2011
+
+
+ IANA Registry for Interactive Connectivity Establishment (ICE) Options
+
+Abstract
+
+   It has been identified that "Interactive Connectivity Establishment
+   (ICE): A Protocol for Network Address Translator (NAT) Traversal for
+   Offer/Answer Protocols" (RFC 5245) is missing a registry for ICE
+   options.  This document defines this missing IANA registry and
+   updates RFC 5245.
+
+Status of This Memo
+
+   This is an Internet Standards Track document.
+
+   This document is a product of the Internet Engineering Task Force
+   (IETF).  It represents the consensus of the IETF community.  It has
+   received public review and has been approved for publication by the
+   Internet Engineering Steering Group (IESG).  Further information on
+   Internet Standards is available in Section 2 of RFC 5741.
+
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   http://www.rfc-editor.org/info/rfc6336.
+
+Copyright Notice
+
+   Copyright (c) 2011 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+
+
+
+Westerlund & Perkins         Standards Track                    [Page 1]
+
+RFC 6336                  IANA Registry for ICE                July 2011
+
+
+Table of Contents
+
+   1. Introduction ....................................................2
+   2. Requirements Language ...........................................2
+   3. IANA Considerations .............................................3
+      3.1. ICE Options ................................................3
+   4. Security Considerations .........................................3
+   5. Acknowledgements ................................................4
+   6. References ......................................................4
+      6.1. Normative References .......................................4
+      6.2. Informative References .....................................4
+
+1.  Introduction
+
+   "Interactive Connectivity Establishment (ICE): A Protocol for Network
+   Address Translator (NAT) Traversal for Offer/Answer Protocols"
+   [RFC5245] defines a concept of ICE options.  However, the ICE RFC
+   fails to create an IANA registry for ICE options.  As one ICE option
+   is under specification in [ECN-FOR-RTP], there is now a need to
+   create the registry.
+
+   RFC 5245 says: "ICE provides for extensibility by allowing an offer
+   or answer to contain a series of tokens that identify the ICE
+   extensions used by that agent.  If an agent supports an ICE
+   extension, it MUST include the token defined for that extension in
+   the ice-options attribute".
+
+   Thus, as future extensions are defined, these ICE options need to be
+   registered with IANA to ensure non-conflicting identification.  The
+   ICE option identifiers are used in signalling between the ICE
+   endpoints to negotiate extension support.  RFC 5245 defines one
+   method of signalling these ICE options, using the Session Description
+   Protocol (SDP) with Offer/Answer [RFC3264].
+
+   This document updates the ICE specification [RFC5245] to define the
+   "Interactive Connectivity Establishment (ICE) Options" registry.
+
+2.  Requirements Language
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119 [RFC2119].
+
+
+
+
+
+
+
+
+
+Westerlund & Perkins         Standards Track                    [Page 2]
+
+RFC 6336                  IANA Registry for ICE                July 2011
+
+
+3.  IANA Considerations
+
+   This document defines a registry "Interactive Connectivity
+   Establishment (ICE) Options" for ICE options that can be used in the
+   SDP "ice-options" attribute or other signalling parameters carrying
+   the ICE options.
+
+3.1.  ICE Options
+
+   An ICE option identifier MUST fulfill the ABNF [RFC5234] syntax for
+   "ice-option-tag" as specified in [RFC5245].  This syntax is
+   reproduced here for simplicity, but the authoritative definition is
+   in the ICE RFC:
+
+   ice-option-tag        = 1*ice-char
+   ice-char              = ALPHA / DIGIT / "+" / "/"
+
+   ICE options are of unlimited length according to the syntax; however,
+   they are RECOMMENDED to be no longer than 20 characters.  This is to
+   reduce message sizes and allow for efficient parsing.
+
+   Registration of an ICE option in the "Interactive Connectivity
+   Establishment (ICE) Options" registry is done using the Specification
+   Required policy as defined in "Guidelines for Writing an IANA
+   Considerations Section in RFCs" [RFC5226].
+
+   A registration request MUST include the following information:
+
+   o  The ICE option identifier to be registered
+
+   o  Name, Email, and Address of a contact person for the registration
+
+   o  Organization or individuals having the change control
+
+   o  Short description of the ICE extension to which the option relates
+
+   o  Reference(s) to the specification defining the ICE option and the
+      related extensions
+
+   This document registers no ICE option.
+
+4.  Security Considerations
+
+   As this document defines an IANA registry for an already existing
+   concept, there are no new security considerations.
+
+
+
+
+
+
+Westerlund & Perkins         Standards Track                    [Page 3]
+
+RFC 6336                  IANA Registry for ICE                July 2011
+
+
+5.  Acknowledgements
+
+   The authors would like to thank the people who reviewed the document
+   and provided feedback: Flemming Andreasen, Mykyta Yevstifeyev, Amanda
+   Baber, and Brian Carpenter.
+
+6.  References
+
+6.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [RFC5226]  Narten, T. and H. Alvestrand, "Guidelines for Writing an
+              IANA Considerations Section in RFCs", BCP 26, RFC 5226,
+              May 2008.
+
+   [RFC5234]  Crocker, D., Ed., and P. Overell, "Augmented BNF for
+              Syntax Specifications: ABNF", STD 68, RFC 5234,
+              January 2008.
+
+   [RFC5245]  Rosenberg, J., "Interactive Connectivity Establishment
+              (ICE): A Protocol for Network Address Translator (NAT)
+              Traversal for Offer/Answer Protocols", RFC 5245,
+              April 2010.
+
+6.2.  Informative References
+
+   [ECN-FOR-RTP]
+              Westerlund, M., Johansson, I., Perkins, C., O'Hanlon, P.,
+              and K. Carlberg, "Explicit Congestion Notification (ECN)
+              for RTP over UDP", Work in Progress, July 2011.
+
+   [RFC3264]  Rosenberg, J. and H. Schulzrinne, "An Offer/Answer Model
+              with Session Description Protocol (SDP)", RFC 3264,
+              June 2002.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Westerlund & Perkins         Standards Track                    [Page 4]
+
+RFC 6336                  IANA Registry for ICE                July 2011
+
+
+Authors' Addresses
+
+   Magnus Westerlund
+   Ericsson
+   Farogatan 6
+   SE-164 80 Kista
+   Sweden
+
+   Phone: +46 10 714 82 87
+   EMail: magnus.westerlund@ericsson.com
+
+
+   Colin Perkins
+   University of Glasgow
+   School of Computing Science
+   Glasgow  G12 8QQ
+   United Kingdom
+
+   EMail: csp@csperkins.org
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Westerlund & Perkins         Standards Track                    [Page 5]
+

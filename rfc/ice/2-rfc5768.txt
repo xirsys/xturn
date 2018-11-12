@@ -1,0 +1,339 @@
+
+
+
+
+
+
+Internet Engineering Task Force (IETF)                      J. Rosenberg
+Request for Comments: 5768                                   jdrosen.net
+Category: Standards Track                                     April 2010
+ISSN: 2070-1721
+
+
+  Indicating Support for Interactive Connectivity Establishment (ICE)
+                in the Session Initiation Protocol (SIP)
+
+Abstract
+
+   This specification defines a media feature tag and an option tag for
+   use with the Session Initiation Protocol (SIP).  The media feature
+   tag allows a User Agent (UA) to communicate to its registrar that it
+   supports ICE.  The option tag allows a UA to require support for ICE
+   in order for a call to proceed.
+
+Status of This Memo
+
+   This is an Internet Standards Track document.
+
+   This document is a product of the Internet Engineering Task Force
+   (IETF).  It represents the consensus of the IETF community.  It has
+   received public review and has been approved for publication by the
+   Internet Engineering Steering Group (IESG).  Further information on
+   Internet Standards is available in Section 2 of RFC 5741.
+
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   http://www.rfc-editor.org/info/rfc5768.
+
+Copyright Notice
+
+   Copyright (c) 2010 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+
+
+
+Rosenberg                    Standards Track                    [Page 1]
+
+RFC 5768                       ICE Support                    April 2010
+
+
+Table of Contents
+
+   1. Introduction ....................................................2
+   2. Terminology .....................................................2
+   3. Motivation ......................................................3
+      3.1. Gateways ...................................................3
+      3.2. Mandating Support for ICE ..................................3
+   4. Media Feature Tag Definition ....................................3
+   5. Option Tag Definition ...........................................4
+   6. Security Considerations .........................................4
+   7. IANA Considerations .............................................4
+      7.1. Option Tag .................................................4
+      7.2. Media Feature Tag ..........................................5
+   8. References ......................................................5
+      8.1. Normative References .......................................5
+      8.2. Informative References .....................................6
+
+1.  Introduction
+
+   RFC 3264 [RFC3264] defines a two-phase exchange of Session
+   Description Protocol (SDP) [RFC4566] messages for the purposes of
+   establishment of multimedia sessions.  This offer/answer mechanism is
+   used by protocols such as the Session Initiation Protocol (SIP)
+   [RFC3261].
+
+   Protocols using offer/answer are difficult to operate through Network
+   Address Translators (NAT).  Because their purpose is to establish a
+   flow of media packets, they tend to carry IP addresses within their
+   messages, which is known to be problematic through NAT [RFC3235].  To
+   remedy this, an extension to SDP, called Interactive Connectivity
+   Establishment (ICE) has been defined [RFC5245].  ICE defines
+   procedures by which agents gather a multiplicity of addresses,
+   include all of them in an SDP offer or answer, and then use peer-to-
+   peer Session Traversal Utilities for NAT (STUN) [RFC5389]
+   connectivity checks to determine a valid address.
+
+   This specification defines a media feature tag, "sip.ice", and a SIP
+   option tag, "ice", that can be used by SIP User Agents that make use
+   of ICE.  Section 3 motivates the need for the media feature tag and
+   option tag, and Section 4 and Section 5 formally define them.
+
+2.  Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119 [RFC2119].
+
+
+
+
+
+Rosenberg                    Standards Track                    [Page 2]
+
+RFC 5768                       ICE Support                    April 2010
+
+
+3.  Motivation
+
+   There are two primary motivations for defining an option tag and a
+   media feature tag.  They are support for gateways, and requiring ICE
+   for a call.
+
+3.1.  Gateways
+
+   Unfortunately, ICE requires both endpoints to support it in order for
+   it to be used.  Within a domain, there will typically be User Agents
+   that do and do not support ICE.  In order to facilitate deployment of
+   ICE, it is anticipated that domains will make use of gateways that
+   act as ICE agents on one side, and non-ICE agents on the other side.
+   This would allow a call from domain A into domain B to make use of
+   ICE, even if the device in domain B does not itself yet support ICE.
+   However, when domain B receives a call, it will need to know whether
+   the call needs to pass through such a gateway, or whether it can go
+   to the terminating UA directly.
+
+   In order to make such a determination, this specification defines a
+   media feature tag, "sip.ice", which can be included in the Contact
+   header field of a REGISTER request [RFC3840].  This allows the
+   registrar to track whether or not a UA supports ICE.  This
+   information can be accessed by a proxy in order to determine whether
+   or not a call needs to route through a gateway.
+
+3.2.  Mandating Support for ICE
+
+   Although ICE provides a built in fall back to non-ICE operation when
+   the answerer doesn't support it, there are cases where the offerer
+   would rather abort the call rather than proceed without ICE.
+   Typically, this is because they would like to choose a different m/c-
+   line address for a non-ICE peer than they would for an ICE capable
+   peer.
+
+   To do this, the "ice" SIP option tag can be included in the Require
+   header field of an INVITE request.
+
+4.  Media Feature Tag Definition
+
+   The "sip.ice" media feature tag indicates support for ICE.  An agent
+   supports ICE if it is either a lite or full implementation, and
+   consequently, is capable of including candidate attributes in an SDP
+   offer or answer for at least one transport protocol.  An agent that
+   supports ICE SHOULD include this media feature tag in the Contact
+   header field of its REGISTER requests and OPTION responses.
+
+
+
+
+
+Rosenberg                    Standards Track                    [Page 3]
+
+RFC 5768                       ICE Support                    April 2010
+
+
+   An agent MAY include the media feature tag in the Contact header
+   field of an INVITE or INVITE response; however, doing so is redundant
+   with ICE attributes in the SDP that indicate the same thing.  In
+   cases where an INVITE omits an offer, the lack or presence of the
+   media feature tag in the Contact header field cannot be used by the
+   callee (which will be the offerer) to determine whether the caller
+   supports ICE.  In cases of third-party call control [RFC3725], the
+   caller may be a controller that does (or doesn't) support ICE, while
+   the answerer may be an agent that does (or doesn't) support ICE.
+
+5.  Option Tag Definition
+
+   This "ice" OPTION tag SHOULD NOT be used in conjunction with the
+   Supported header field (this SHOULD NOT include responses to OPTION
+   requests).  The media feature tag is used as the one and only
+   mechanism for indicating support for ICE.  The option tag is meant to
+   be used only with the Require header field.  When placed in the
+   Require header field of an INVITE request, it indicates that the User
+   Agent Server (UAS) must support ICE in order to process the call.  An
+   agent supports ICE if it is either a full or lite implementation, and
+   consequently, is capable of including candidate attributes in an SDP
+   offer or answer for at least one transport protocol.
+
+6.  Security Considerations
+
+   A malicious intermediary might attempt to modify a SIP message by
+   inserting a Require header field containing the "ice" option tag.  If
+   ICE were not supported on the UAS, this would cause the call to fail
+   when it would otherwise succeed.  Of course, this attack is not
+   specific to ICE, and can be done using any option tag.  This attack
+   is prevented by usage of the SIPS mechanism as defined in RFC 3261.
+
+   Similarly, an intermediary might attempt to remove the media feature
+   tag from a REGISTER request or OPTIONS request, which might cause a
+   call to skip ICE processing when it otherwise might make use of it.
+   This attack is also prevented using the SIPS mechanism.
+
+7.  IANA Considerations
+
+   This specification defines a new media feature tag and SIP option
+   tag.
+
+7.1.  Option Tag
+
+   This section defines a new SIP option tag per the guidelines in
+   Section 27.1 of RFC 3261.
+
+
+
+
+
+Rosenberg                    Standards Track                    [Page 4]
+
+RFC 5768                       ICE Support                    April 2010
+
+
+   Name:  ice
+
+   Description:  This option tag is used to identify the Interactive
+      Connectivity Establishment (ICE) extension.  When present in a
+      Require header field, it indicates that ICE is required by an
+      agent.
+
+7.2.  Media Feature Tag
+
+   This section registers a new media feature tag in the SIP tree,
+   defined in Section 12.1 of RFC 3840 [RFC3840].
+
+   Media feature tag name:  sip.ice
+
+   ASN.1 Identifier:  1.3.6.1.8.4.22
+
+   Summary of the media feature indicated by this tag:  This feature tag
+      indicates that the device supports Interactive Connectivity
+      Establishment (ICE).
+
+   Values appropriate for use with this feature tag:  Boolean.
+
+   The feature tag is intended primarily for use in the following
+      applications, protocols, services, or negotiation mechanisms:
+      This feature tag is most useful in a communications application,
+      for describing the capabilities of a device, such as a phone or
+      PDA.
+
+   Examples of typical use:  Routing a call to a phone that can support
+      ICE.
+
+   Related standards or documents:  RFC 5768
+
+   Security Considerations:  Security considerations for this media
+      feature tag are discussed in Section 6 of this document.
+
+8.  References
+
+8.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [RFC3261]  Rosenberg, J., Schulzrinne, H., Camarillo, G., Johnston,
+              A., Peterson, J., Sparks, R., Handley, M., and E.
+              Schooler, "SIP: Session Initiation Protocol", RFC 3261,
+              June 2002.
+
+
+
+
+Rosenberg                    Standards Track                    [Page 5]
+
+RFC 5768                       ICE Support                    April 2010
+
+
+   [RFC3264]  Rosenberg, J. and H. Schulzrinne, "An Offer/Answer Model
+              with Session Description Protocol (SDP)", RFC 3264,
+              June 2002.
+
+   [RFC3840]  Rosenberg, J., Schulzrinne, H., and P. Kyzivat,
+              "Indicating User Agent Capabilities in the Session
+              Initiation Protocol (SIP)", RFC 3840, August 2004.
+
+   [RFC4566]  Handley, M., Jacobson, V., and C. Perkins, "SDP: Session
+              Description Protocol", RFC 4566, July 2006.
+
+   [RFC5245]  Rosenberg, J., "Interactive Connectivity Establishment
+              (ICE): A Protocol for Network Address Translator (NAT)
+              Traversal for Offer/Answer Protocols", RFC 5245, April
+              2010.
+
+8.2.  Informative References
+
+   [RFC3235]  Senie, D., "Network Address Translator (NAT)-Friendly
+              Application Design Guidelines", RFC 3235, January 2002.
+
+   [RFC3725]  Rosenberg, J., Peterson, J., Schulzrinne, H., and G.
+              Camarillo, "Best Current Practices for Third Party Call
+              Control (3pcc) in the Session Initiation Protocol (SIP)",
+              BCP 85, RFC 3725, April 2004.
+
+   [RFC5389]  Rosenberg, J., Mahy, R., Matthews, P., and D. Wing,
+              "Session Traversal Utilities for NAT (STUN)", RFC 5389,
+              October 2008.
+
+Author's Address
+
+   Jonathan Rosenberg
+   jdrosen.net
+   Monmouth, NJ
+   US
+
+   EMail: jdrosen@jdrosen.net
+   URI:   http://www.jdrosen.net
+
+
+
+
+
+
+
+
+
+
+
+
+Rosenberg                    Standards Track                    [Page 6]
+
