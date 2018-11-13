@@ -60,7 +60,7 @@ With Elixir installed, you then need to update the configuration found in `confi
 
 With your config set, you can start the server in console mode with:
 
-    ies -S mix
+    iex -S mix
 
 ## API Endpoints
 
