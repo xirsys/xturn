@@ -1,1 +1,3 @@
 theme: jekyll-theme-cayman
+pages_list:
+  Getting Started: 'getting-started'

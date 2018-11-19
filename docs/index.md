@@ -1,3 +1,7 @@
+---
+title: Home
+---
+
 ## Welcome
 
 XTurn is an open-source TURN server written in Elixir by the guys at Xirsys.  This server runs quite fast, but has never run in a production environment. The purpose of this project is two-fold:
