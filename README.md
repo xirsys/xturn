@@ -81,6 +81,8 @@ Future Plans
 
 Changelog
 ===
+19-11-2018 - Simplify Pipelines module, moving pipeline descriptors to the config file. Also added [Getting Started](getting-started.md) page, describing testing the server.
+
 30-10-2018 - Extract actions to module based pipeline
 
 12-07-2018 - Externalised XMediaLib as a separate library
