@@ -85,3 +85,7 @@ Once generated, the compiler will output the commands needed to execute the rele
 Xirsys is providing this project for the benefit of the WebRTC community. It is both a simple and efficient server and is much needed by the community.  While the CoTurn project provides a great tool with outstanding features, it does not provide much help in supporting developers with understanding how TURN works or with a foundation for easily extending functionality for their own needs. Xirsys hopes to remedy this with XTurn.
 
 In return for publishing this project, all Xirsys requires is some feedback and contribution where possible.  If you have any ideas, benchmarks, new features or simply enough time to help work on our road map, please let us know. You can contact us directly at [experts@xirsys.com](mailto://experts@xirsys.com)
+
+## Copyright
+
+XTurn is licensed by Xirsys under the Apache License, Version 2.0. See LICENSE in the Github repository for the full license text.
