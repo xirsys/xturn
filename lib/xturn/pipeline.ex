@@ -23,26 +23,9 @@ defmodule Xirsys.XTurn.Pipeline do
 
   alias Xirsys.Sockets.{Socket, Conn}
 
-  alias Xirsys.XTurn.Actions.{
-    Allocate,
-    Authenticates,
-    ChannelBind,
-    ChannelData,
-    CreatePerm,
-    HasRequestedTransport,
-    NotAllocationExists,
-    Refresh,
-    SendIndication
-  }
-
   alias XMediaLib.Stun
 
-  @allocation [HasRequestedTransport, NotAllocationExists, Authenticates, Allocate]
-  @refresh [Authenticates, Refresh]
-  @channelbind [Authenticates, ChannelBind]
-  @createpermission [Authenticates, CreatePerm]
-  @indication [SendIndication]
-  @channeldata [ChannelData]
+  @pipes Application.get_env(:xturn, :pipes)
 
   @doc """
   Encapsulates full STUN/TURN request stub. Must be called as
@@ -65,7 +48,7 @@ defmodule Xirsys.XTurn.Pipeline do
       }"
     )
 
-    execute(conn, @channeldata)
+    execute(conn, :channeldata)
   end
 
   @doc """
@@ -82,11 +65,11 @@ defmodule Xirsys.XTurn.Pipeline do
 
   attributes include:
     binding:          Handles STUN requests [RFC5389]
-    allocation:       Handles TURN allocation requests [RFC5766] section 2.2 and section 5
+    allocate:         Handles TURN allocation requests [RFC5766] section 2.2 and section 5
     refresh:          Handles TURN refresh requests [RFC5766] section 7
     channelbind:      Handles TURN channelbind requests [RFC5766] section 11
-    createpermission: Handles TURN createpermission requests [RFC5766] section 9
-    indication:       Handles TURN send indication requests [RFC5766] section 9
+    createperm:       Handles TURN createpermission requests [RFC5766] section 9
+    send:             Handles TURN send indication requests [RFC5766] section 9
   """
   @spec do_request(%Conn{}) :: %Conn{} | false
   def do_request(%Conn{decoded_message: %Stun{class: :request, method: :binding}} = conn) do
@@ -105,54 +88,14 @@ defmodule Xirsys.XTurn.Pipeline do
     Conn.response(conn, :success, attrs)
   end
 
-  def do_request(%Conn{decoded_message: %Stun{class: :request, method: :allocate}} = conn) do
+  def do_request(%Conn{decoded_message: %Stun{class: class, method: method}} = conn) when class in [:request, :indication] do
     Logger.debug(
-      "TURN allocation request from client at ip:#{inspect(conn.server_ip)}, port:#{
+      "TURN #{method} #{class} from client at ip:#{inspect(conn.server_ip)}, port:#{
         inspect(conn.server_port)
       }"
     )
 
-    execute(conn, @allocation)
-  end
-
-  def do_request(%Conn{decoded_message: %Stun{class: :request, method: :refresh}} = conn) do
-    Logger.debug(
-      "TURN refresh request from client at ip:#{inspect(conn.client_ip)}, port:#{
-        inspect(conn.client_port)
-      }"
-    )
-
-    execute(conn, @refresh)
-  end
-
-  def do_request(%Conn{decoded_message: %Stun{class: :request, method: :channelbind}} = conn) do
-    Logger.debug(
-      "TURN channelbind request from client at ip:#{inspect(conn.client_ip)}, port:#{
-        inspect(conn.client_port)
-      }"
-    )
-
-    execute(conn, @channelbind)
-  end
-
-  def do_request(%Conn{decoded_message: %Stun{class: :request, method: :createperm}} = conn) do
-    Logger.debug(
-      "TURN createpermission request from client at ip:#{inspect(conn.client_ip)}, port:#{
-        inspect(conn.client_port)
-      }"
-    )
-
-    execute(conn, @createpermission)
-  end
-
-  def do_request(%Conn{decoded_message: %Stun{class: :indication, method: :send}} = conn) do
-    Logger.debug(
-      "TURN send indication request from client at ip:#{inspect(conn.client_ip)}, port:#{
-        inspect(conn.client_port)
-      }"
-    )
-
-    execute(conn, @indication)
+    execute(conn, method)
   end
 
   def do_request(false) do
@@ -166,8 +109,11 @@ defmodule Xirsys.XTurn.Pipeline do
   end
 
   # executes a given list of actions against a connection
-  defp execute(%Conn{} = conn, actions) when is_list(actions),
-    do: Enum.reduce(actions, conn, &process/2)
+  defp execute(%Conn{} = conn, pipe) when is_atom(pipe) do
+    @pipes
+    |> Map.get(pipe, [])
+    |> Enum.reduce(conn, &process/2)
+  end
 
   defp process(_, %Conn{halt: true} = conn), do: conn
 

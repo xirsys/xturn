@@ -25,9 +25,7 @@ defmodule Xirsys.XTurn.Actions.ChannelData do
     false
   end
 
-  def process(%Conn{message: <<1::2, num::14, _length::16, data::binary>>} = conn) do
-    channel = <<1::2, num::14>>
-
+  def process(%Conn{message: <<channel::16, _length::16, data::binary>>} = conn) do
     Logger.debug(
       "channel data (#{byte_size(data)} bytes) received on channel #{inspect(channel)}"
     )

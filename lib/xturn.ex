@@ -21,7 +21,7 @@ defmodule Xirsys.XTurn do
 
     Xirsys.XTurn.Supervisor.start_link(
       Application.get_env(:xturn, :listen),
-      Xirsys.XTurn.Commands
+      Xirsys.XTurn.Pipeline
     )
   end
 

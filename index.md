@@ -62,6 +62,8 @@ With your config set, you can start the server in console mode with:
 
     iex -S mix
 
+A discussion on testing the server can be found [here](getting_started.md)
+
 ## API Endpoints
 
 The XTurn server uses Maru to provide exposed API endpoints. The capabilities of this API will expand over time, but currently provides a means to remotely add user credentials for the `authentication` feature.

@@ -21,6 +21,32 @@ config :xturn,
   certs: [
     {:certfile, "certs/server.crt"},
     {:keyfile, "certs/server.key"}
-  ]
+  ],
+  pipes: %{
+    allocate: [
+      Xirsys.XTurn.Actions.HasRequestedTransport,
+      Xirsys.XTurn.Actions.NotAllocationExists,
+      Xirsys.XTurn.Actions.Authenticates,
+      Xirsys.XTurn.Actions.Allocate
+    ],
+    refresh: [
+      Xirsys.XTurn.Actions.Authenticates,
+      Xirsys.XTurn.Actions.Refresh
+    ],
+    channelbind: [
+      Xirsys.XTurn.Actions.Authenticates,
+      Xirsys.XTurn.Actions.ChannelBind
+    ],
+    createperm: [
+      Xirsys.XTurn.Actions.Authenticates,
+      Xirsys.XTurn.Actions.CreatePerm
+    ],
+    send: [
+      Xirsys.XTurn.Actions.SendIndication
+    ],
+    channeldata: [
+      Xirsys.XTurn.Actions.ChannelData
+    ]
+  }
 
 config :maru, Xirsys.API, http: [port: 8880]
