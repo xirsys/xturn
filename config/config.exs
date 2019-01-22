@@ -6,7 +6,7 @@ config :logger,
 
 config :xturn,
   authentication: %{required: false},
-  permissions: %{required: true},
+  permissions: %{required: true}, # for some reason, turnutils_uclient doesn't set permissions for DTLS
   realm: "xturn.com",
   listen: [
     {:udp, '0.0.0.0', 3478},

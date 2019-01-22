@@ -15,5 +15,5 @@
   "poolboy": {:hex, :poolboy, "1.5.1", "6b46163901cfd0a1b43d692657ed9d7e599853b3b21b95ae5ae0a777cf9b6ca8", [:rebar], [], "hexpm"},
   "ranch": {:hex, :ranch, "1.5.0", "f04166f456790fee2ac1aa05a02745cc75783c2bfb26d39faf6aefc9a3d3a58a", [:rebar3], [], "hexpm"},
   "skerl": {:git, "https://github.com/xirsys/skerl.git", "406a431b0140305a739457bea067d6e4d2852681", []},
-  "xmedialib": {:git, "https://github.com/xirsys/xmedialib", "dc5913b6fe23b93a977ee66c33348540ee04de34", [branch: "WIP_RTP"]},
+  "xmedialib": {:git, "https://github.com/xirsys/xmedialib", "d381e15bf34626503b35f86037198812fd969a61", []},
 }
