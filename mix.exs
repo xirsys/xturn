@@ -29,7 +29,7 @@ defmodule Xirsys.XTurn.Mixfile do
 
   defp deps() do
     [
-      {:xmedialib, git: "https://github.com/xirsys/xmedialib"},
+      {:xmedialib, git: "https://github.com/xirsys/xmedialib", branch: "WIP_RTP"},
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.18.3"},
       {:exts, "~> 0.3.4"},

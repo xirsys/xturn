@@ -1,3 +1,4 @@
 theme: jekyll-theme-cayman
 pages_list:
   Getting Started: 'getting_started.html'
+  Understanding TURN: 'understanding_turn.html'
