@@ -83,6 +83,8 @@ Changelog
 ===
 19-11-2018 - Simplify Pipelines module, moving pipeline descriptors to the config file. Also added [Getting Started](getting-started.md) page, describing testing the server.
 
+22-01-2019 - Updated to work with latest XMediaLib
+
 30-10-2018 - Extract actions to module based pipeline
 
 12-07-2018 - Externalised XMediaLib as a separate library
