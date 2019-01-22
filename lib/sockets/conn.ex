@@ -115,7 +115,7 @@ defmodule Xirsys.Sockets.Conn do
         conn
 
       client_socket ->
-        Socket.send(client_socket, Stun.encode(turn, turn.key), conn.client_ip, conn.client_port)
+        Socket.send(client_socket, Stun.encode(turn), conn.client_ip, conn.client_port)
         conn
     end
   end
