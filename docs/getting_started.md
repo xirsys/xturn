@@ -26,6 +26,8 @@ Once running, open another terminal window and try the following commands, while
 
     turnutils_uclient -e 127.0.0.1 -L 127.0.0.1 -n 100 -p 5349 -v -S -l 2000 -k ./certs/server.key -i ./certs/server.crt -u user -w pass 127.0.0.1
 
+**NOTE:** Using UClient with DTLS currently fails to send permissions packets. This will mean testing DTLS will fail unless you set the permissions value in the XTURN server config to `false`.  I have raised this issue on the CoTURN Git repository and hope that it'll be fixed soon.  However, know that for now, this will not be a problem with your own applications communicating with the XTURN server and you should probably leave the permissions config as `true` when developing / running your application.
+
 #### TCP Connection
 
     turnutils_uclient -e 127.0.0.1 -L 127.0.0.1 -n 100 -p 3478 -v -t -l 2000 -u user -w pass 127.0.0.1
