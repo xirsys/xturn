@@ -5,8 +5,9 @@ config :logger,
   compile_time_purge_level: :debug
 
 config :xturn,
-  authentication: %{required: false},
-  permissions: %{required: true}, # for some reason, turnutils_uclient doesn't set permissions for DTLS
+  authentication: %{required: false, username: "guest", credential: "guest"},
+  # for some reason, turnutils_uclient doesn't set permissions for DTLS
+  permissions: %{required: true},
   realm: "xturn.com",
   listen: [
     {:udp, '0.0.0.0', 3478},
@@ -48,5 +49,3 @@ config :xturn,
       Xirsys.XTurn.Actions.ChannelData
     ]
   }
-
-config :maru, Xirsys.API, http: [port: 8880]

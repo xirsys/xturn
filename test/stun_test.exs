@@ -3,8 +3,9 @@ defmodule StunTest do
   use ExUnit.Case
   require Logger
 
-  alias Xirsys.Stun
-  alias Xirsys.Turn.{Conn, Commands}
+  alias XMediaLib.Stun
+  alias Xirsys.Sockets.Conn
+  alias Xirsys.XTurn.Pipeline
   alias Xirsys.Sockets.Socket
 
   @conn %Conn{
@@ -29,7 +30,7 @@ defmodule StunTest do
   end
 
   test "returns valid response", %{stun: stun} do
-    conn = Commands.process_message(%Conn{@conn | message: stun})
+    conn = Pipeline.process_message(%Conn{@conn | message: stun})
 
     assert conn.response.class == :success,
            "STUN request should be valid"

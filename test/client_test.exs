@@ -3,7 +3,7 @@ defmodule ClientTest do
   use ExUnit.Case
   # import ExUnit.CaptureIO # And allow us to capture stuff sent to stdout
 
-  # alias Xirsys.Turn.Allocate.Client, as: C
+  # alias Xirsys.XTurn.Allocate.Client, as: C
 
   # test "milliseconds_left" do
   #   now = :calendar.local_time()

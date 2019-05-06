@@ -101,7 +101,8 @@ defmodule Xirsys.XTurn.Pipeline do
     Conn.response(conn, :success, attrs)
   end
 
-  def do_request(%Conn{decoded_message: %Stun{class: class, method: method}} = conn) when class in [:request, :indication] do
+  def do_request(%Conn{decoded_message: %Stun{class: class, method: method}} = conn)
+      when class in [:request, :indication] do
     Logger.debug(
       "TURN #{method} #{class} from client at ip:#{inspect(conn.server_ip)}, port:#{
         inspect(conn.server_port)

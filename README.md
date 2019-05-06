@@ -58,16 +58,6 @@ The listening ports should be set, next.  Standard ports are already set, but it
 
 Note that `server_type` is a Xirsys thing and can be ignored.
 
-Maru
----
-
-Maru is an Elixir HTTP server library.  This TURN server provide some lightweight API features for creating user credentials and viewing throughput stats.  This will improve with time (it's just for testing atm).
-
-    config :maru, Xirsys.API,
-      http: [port: 8880]
-
-Change the port number to access the API from a different port.
-
 Future Plans
 ===
 

@@ -3,8 +3,8 @@ defmodule ChannelStoreTest do
   use ExUnit.Case
   # import ExUnit.CaptureIO # And allow us to capture stuff sent to stdout
 
-  alias Xirsys.Turn.Channels.Store, as: S
-  alias Xirsys.Turn.Tuple5
+  alias Xirsys.XTurn.Channels.Store, as: S
+  alias Xirsys.XTurn.Tuple5
 
   @valid_address {{127, 0, 0, 2}, 8888}
   @invalid_address {{127, 0, 0, 3}, 8889}
@@ -15,7 +15,7 @@ defmodule ChannelStoreTest do
   @sp 54345
 
   def new_tuple5 do
-    %Xirsys.Turn.Tuple5{
+    %Xirsys.XTurn.Tuple5{
       client_address: @ca,
       client_port: @cp,
       server_address: @sa,

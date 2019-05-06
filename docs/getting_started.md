@@ -36,4 +36,4 @@ Once running, open another terminal window and try the following commands, while
 
     turnutils_uclient -e 127.0.0.1 -L 127.0.0.1 -n 100 -p 3478 -v -l 2000 -u user -w pass 127.0.0.1
 
-Another way to test the server is to host it on a remote Virtual Machine and to target is using Google's [test.webrtc.org](https://test.webrtc.org) tool.
+Another way to test the server is to host it on a remote Virtual Machine and to target it using Google's [test.webrtc.org](https://test.webrtc.org) tool.

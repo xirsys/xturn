@@ -1,7 +1,7 @@
 defmodule CacheTest do
   # bring in the test functionality
   use ExUnit.Case, async: true
-  import Xirsys.Turn.Cache.Store
+  import Xirsys.XTurn.Cache.Store
 
   setup do
     {:ok, state} = init(500)
