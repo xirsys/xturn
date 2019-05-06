@@ -49,6 +49,28 @@ defmodule Xirsys.Sockets.Socket do
     do: Application.get_env(:xturn, :server_ip, {0, 0, 0, 0})
 
   @doc """
+  Returns the client message hooks from config
+  """
+  @spec client_hooks() :: list()
+  def client_hooks() do
+    case Application.get_env(:xturn, :client_hooks, []) do
+      hooks when is_list(hooks) -> hooks
+      _ -> []
+    end
+  end
+
+  @doc """
+  Returns the peer message hooks from config
+  """
+  @spec peer_hooks() :: list()
+  def peer_hooks() do
+    case Application.get_env(:xturn, :peer_hooks, []) do
+      hooks when is_list(hooks) -> hooks
+      _ -> []
+    end
+  end
+
+  @doc """
   Returns the servers local ip from the config
   """
   @spec server_local_ip() :: tuple()
@@ -120,6 +142,22 @@ defmodule Xirsys.Sockets.Socket do
 
   def send(%Socket{type: :tls, sock: socket}, msg, _, _),
     do: :ssl.send(socket, msg)
+
+  @doc """
+  Sends data to peer hooks
+  """
+  def send_to_peer_hooks(data) do
+    peer_hooks()
+    |> Enum.each(&GenServer.cast(&1, {:process_message, data}))
+  end
+
+  @doc """
+  Sends data to client hooks
+  """
+  def send_to_client_hooks(data) do
+    client_hooks()
+    |> Enum.each(&GenServer.cast(&1, {:process_message, data}))
+  end
 
   @doc """
   Sets one or more options for a socket.
@@ -328,17 +366,18 @@ defmodule Xirsys.Sockets.Socket do
 
   # Calls the callback handler
   defp process_msg(cb, msg, {listener, socket, fip, fport, tip, tport}) do
-    apply(cb, :process_message, [
-      %Conn{
-        message: msg,
-        listener: listener,
-        client_socket: socket,
-        client_ip: fip,
-        client_port: fport,
-        server_ip: tip,
-        server_port: tport
-      }
-    ])
+    conn = %Conn{
+      message: msg,
+      listener: listener,
+      client_socket: socket,
+      client_ip: fip,
+      client_port: fport,
+      server_ip: tip,
+      server_port: tport
+    }
+
+    apply(cb, :process_message, [conn])
+    send_to_client_hooks(conn)
   end
 
   # Opens an available UDP port as per requirement.

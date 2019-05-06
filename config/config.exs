@@ -23,6 +23,8 @@ config :xturn,
     {:certfile, "certs/server.crt"},
     {:keyfile, "certs/server.key"}
   ],
+  client_hooks: [],
+  peer_hooks: [],
   pipes: %{
     allocate: [
       Xirsys.XTurn.Actions.HasRequestedTransport,
