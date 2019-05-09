@@ -69,6 +69,14 @@ Future Plans
 - Full support for IPv6
 - TCP Allocations (connect command)
 
+Donations
+===
+Developing XTurn takes time (mostly personal), so donations are welcome. Donations can be sent via PayPal:
+
+![Donation QR Code](./docs/assets/images/qrcode.png)
+
+Alternatively, if you would like to contribute, please feel free to let us know.
+
 Changelog
 ===
 Moved to separate document
