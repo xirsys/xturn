@@ -15,7 +15,7 @@ defmodule Xirsys.XTurn.Mixfile do
 
   def application() do
     [
-      applications: [:crypto, :sasl, :logger, :ssl, :xmerl, :exts],
+      applications: [:crypto, :sasl, :logger, :ssl, :xmerl, :exts, :xturn_websocket_logger],
       registered: [Xirsys.XTurn.Server],
       mod: {Xirsys.XTurn, []},
       logger: [compile_time_purge_level: :debug],
@@ -32,6 +32,7 @@ defmodule Xirsys.XTurn.Mixfile do
       {:xmedialib, git: "https://github.com/xirsys/xmedialib"},
       {:xturn_sockets, git: "https://github.com/xirsys/xturn-sockets"},
       {:xturn_cache, git: "https://github.com/xirsys/xturn-cache"},
+      {:xturn_websocket_logger, git: "https://github.com/xirsys/xturn-websocket-logger"},
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.18.3"},
       {:exts, "~> 0.3.4"}

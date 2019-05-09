@@ -23,7 +23,7 @@ config :xturn,
     {:certfile, "certs/server.crt"},
     {:keyfile, "certs/server.key"}
   ],
-  client_hooks: [],
+  client_hooks: [Xirsys.XTurn.WebSocketLogger.Client],
   peer_hooks: [],
   pipes: %{
     allocate: [
