@@ -17,9 +17,8 @@
   "plug_crypto": {:hex, :plug_crypto, "1.0.0", "18e49317d3fa343f24620ed22795ec29d4a5e602d52d1513ccea0b07d8ea7d4d", [:mix], [], "hexpm"},
   "ranch": {:hex, :ranch, "1.7.1", "6b1fab51b49196860b733a49c07604465a47bdb78aa10c1c16a3d199f7f8c881", [:rebar3], [], "hexpm"},
   "skerl": {:git, "https://github.com/xirsys/skerl.git", "406a431b0140305a739457bea067d6e4d2852681", []},
-  "xmedialib": {:git, "https://github.com/xirsys/xmedialib", "74d90b3e122794f868469f1ce37d9d448f91548f", []},
+  "xmedialib": {:git, "https://github.com/xirsys/xmedialib", "dbbc2d91a9422c0e677ca8a71029383f847e7b2d", [ref: "dbbc2d91a9422c0e677ca8a71029383f847e7b2d"]},
   "xturn_cache": {:git, "https://github.com/xirsys/xturn-cache", "faa9e04f3d1b3089289efb9e26d2fe3a003127e6", []},
   "xturn_simple_auth": {:git, "https://github.com/xirsys/xturn-simple-auth", "2dfaf41ef6c533e0556172d94825bfe31639b0c9", []},
-  "xturn_sockets": {:git, "https://github.com/xirsys/xturn-sockets", "13f9ae27febc56b686e866e0727d257c497529d5", []},
-  "xturn_websocket_logger": {:git, "https://github.com/xirsys/xturn-websocket-logger", "07ad4b922599032b62fa785b500feaca686b2b27", []},
+  "xturn_sockets": {:git, "https://github.com/xirsys/xturn-sockets", "fbb2a1cd17c7d895a91c855c3d062e09ecf01b32", [ref: "fbb2a1cd17c7d895a91c855c3d062e09ecf01b32"]}
 }
