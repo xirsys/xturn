@@ -215,7 +215,7 @@ defmodule Xirsys.XTurn.Allocate.Client do
         state.tuple5.client_port
       )
 
-      Socket.send_to_peer_hooks(data)
+      Socket.send_to_peer_hooks(%{client_ip: state.tuple5.client_address, client_port: state.tuple5.client_port, message: data})
 
       {:noreply, %State{state | bytes_in: state.bytes_in + byte_size(data)},
        Time.milliseconds_left(state)}
