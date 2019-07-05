@@ -3,10 +3,10 @@ defmodule TurnTest do
   use ExUnit.Case, async: false
   require Logger
 
-  alias Xirsys.Stun
-  alias Xirsys.Turn.{Conn, Commands}
-  alias Xirsys.Turn.Auth.Client, as: Auth
-  alias Xirsys.Turn.Allocate.Client, as: AllocateClient
+  alias XMediaLib.Stun
+  alias Xirsys.Sockets.Conn
+  alias Xirsys.XTurn.Pipeline
+  alias Xirsys.XTurn.Allocate.Client, as: AllocateClient
   alias Xirsys.Sockets.Socket
 
   @conn %Conn{
@@ -25,8 +25,8 @@ defmodule TurnTest do
     }
   }
   @realm "xirsys.com"
-  @username "some_user"
-  @password "some_pass"
+  @username "guest"
+  @password "guest"
 
   test "allocates without authentication" do
     # store the current number of allocation workers
@@ -35,7 +35,7 @@ defmodule TurnTest do
     # create encoded STUN packet
     stun = Stun.encode(@allocation)
     # process
-    conn = Commands.process_message(%Conn{@conn | message: stun})
+    conn = Pipeline.process_message(%Conn{@conn | message: stun})
 
     # response should be valid and contain reflexive IP and Port
     assert conn.response.class == :success,
@@ -76,7 +76,7 @@ defmodule TurnTest do
     stun = Stun.encode(%Stun{@allocation | attrs: attrs})
 
     conn =
-      Commands.process_message(%Conn{
+      Pipeline.process_message(%Conn{
         @conn
         | message: stun,
           client_ip: @alternate_ip,
@@ -100,12 +100,10 @@ defmodule TurnTest do
 
     # re-encode updated data
     stun = Stun.encode(%Stun{@allocation | attrs: attrs})
-    # now we should add our user to the manifest, so it passes the lookup
-    Auth.add_user(@username, @password, "/", "server")
 
     # second pass
     conn =
-      Commands.process_message(%Conn{
+      Pipeline.process_message(%Conn{
         @conn
         | message: stun,
           client_ip: @alternate_ip,

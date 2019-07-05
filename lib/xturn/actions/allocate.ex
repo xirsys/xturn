@@ -38,16 +38,21 @@ defmodule Xirsys.XTurn.Actions.Allocate do
 
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
     Logger.debug("allocating #{inspect(conn.decoded_message)}")
+    # Acquire the transport type. Currently always :udp
     proto = Map.get(attrs, :requested_transport)
 
+    # Socket setup for peer port on server
     opts =
       if Map.has_key?(attrs, :dont_fragment) and proto != @tcp_proto,
         do: [{:raw, 0, 10, <<2::native-size(32)>>}],
         else: []
 
+    # Create a new 5Tuple reference. Overwrites if already exists.
     tuple5 = Tuple5.create(conn, proto)
+    # TTL for the allocation is 600. This is standard
     lifetime = 600
 
+    # Create the actual allocation process
     {:ok, pid} =
       AllocateClient.create(
         conn.decoded_message.transactionid,
@@ -56,12 +61,19 @@ defmodule Xirsys.XTurn.Actions.Allocate do
         lifetime
       )
 
+    # Assign peer details to allocation. Currently, allocations support a single peer, since
+    # WebRTC only supports single peers per allocation.
     AllocateClient.set_peer_details(pid, conn.decoded_message.ns, conn.decoded_message.peer_id)
+    # Open the peer port
     {:ok, socket, port} = AllocateClient.open_port_random(pid, opts)
+    # Get permission cache Agent process reference
     {:ok, permission_cache} = AllocateClient.get_permission_cache(pid)
+    # Create relay IP / port tuple...
     relay_address = {Socket.server_ip(), port}
+    # ...and assign it to the allocation
     AllocateClient.set_relay_address(pid, relay_address)
 
+    # Store 5Tuple into local db
     Store.insert(
       conn.decoded_message.transactionid,
       pid,
@@ -71,6 +83,7 @@ defmodule Xirsys.XTurn.Actions.Allocate do
       permission_cache
     )
 
+    # Build attributes to send back to client
     nattrs = %{
       # reservation_token: <<0::64>>,
       xor_mapped_address: {conn.client_ip, conn.client_port},
@@ -81,6 +94,7 @@ defmodule Xirsys.XTurn.Actions.Allocate do
     Logger.debug("integrity = #{conn.decoded_message.integrity}")
     # turn2 = %Stun{conn.decoded_message | integrity: :true}
     Logger.debug("Allocated")
+    # Notify client
     Conn.response(conn, :success, nattrs)
   end
 end

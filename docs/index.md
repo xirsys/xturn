@@ -68,15 +68,9 @@ With your config set, you can start the server in console mode with:
 
 A discussion on testing the server can be found [here](getting_started.md)
 
-## API Endpoints
+## Authentication
 
-The XTurn server uses Maru to provide exposed API endpoints. The capabilities of this API will expand over time, but currently provides a means to remotely add user credentials for the `authentication` feature.
-
-Credentials can be added by `POST`ing `username` and `password` parameters to the `/auth` endpoint.
-
-The port the API listens on can be found in the config file:
-
-    config :maru, Xirsys.API, http: [port: 8880]
+The XTurn server has now been simplified, as more complex authentication options will soon exist in plugin form.  The new XTurn release supports a single authentication user / pass pair, which can be entered into the configuration as required.  An authentication plugin providing a user creation / deletion endpoint will be available soon.
 
 ## Creating a Release
 

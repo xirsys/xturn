@@ -34,6 +34,7 @@ defmodule Xirsys.XTurn.Actions.NotAllocationExists do
   alias XMediaLib.Stun
 
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
+    # Create 5Tuple match criteria for search
     tup5 = [
       {:ca, conn.client_ip},
       {:cp, conn.client_port},
@@ -42,10 +43,13 @@ defmodule Xirsys.XTurn.Actions.NotAllocationExists do
       {:proto, Map.get(attrs, :requested_transport)}
     ]
 
+    # 5Tuple not yet exists?
     with false <- Store.exists(tup5) do
+      # Then we're good
       conn
     else
       _ ->
+        # 5Tuple already created.
         Logger.info(
           "Allocation already exists from ip:#{inspect(conn.client_ip)}, port:#{
             inspect(conn.client_port)
@@ -63,6 +67,7 @@ defmodule Xirsys.XTurn.Actions.NotAllocationExists do
           lifetime: <<600::32>>
         ]
 
+        # Respond positively, since this is not an error.
         Logger.debug("integrity = #{conn.decoded_message.integrity}")
         Logger.debug("Allocated")
         Conn.response(conn, :success, nattrs)

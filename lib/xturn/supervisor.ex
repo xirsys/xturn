@@ -25,7 +25,7 @@
 defmodule Xirsys.XTurn.Supervisor do
   use Supervisor
 
-  alias Xirsys.XTurn.{Server, Allocate, Auth}
+  alias Xirsys.XTurn.{Server, Allocate}
   alias Xirsys.Sockets.Listener.{TCP, UDP}
   alias Xirsys.Sockets.SockSupervisor
 
@@ -46,7 +46,6 @@ defmodule Xirsys.XTurn.Supervisor do
       [
         worker(Server, []),
         worker(Allocate.Supervisor, [Allocate.Client]),
-        worker(Auth.Supervisor, []),
         worker(SockSupervisor, [])
       ] ++ children,
       strategy: :one_for_one

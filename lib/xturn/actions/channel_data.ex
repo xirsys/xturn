@@ -38,14 +38,18 @@ defmodule Xirsys.XTurn.Actions.ChannelData do
     false
   end
 
+  # If packet has a channel data header, then process as channel data throughput
   def process(%Conn{message: <<channel::16, _length::16, data::binary>>} = conn) do
     Logger.debug(
       "channel data (#{byte_size(data)} bytes) received on channel #{inspect(channel)}"
     )
 
+    # Match on any protocol (though only :udp should exist)
     proto = :_
+    # Retrieve 5Tuple
     tuple5 = Tuple5.to_map(Tuple5.create(conn, proto))
 
+    # Get channel permission / registration
     case Channels.lookup({channel, tuple5}) do
       {:ok, [[client, _peer_address, socket, channel_cache] | _tail]} ->
         # already short circuited
