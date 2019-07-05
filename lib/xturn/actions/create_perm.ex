@@ -33,21 +33,27 @@ defmodule Xirsys.XTurn.Actions.CreatePerm do
   alias Xirsys.Sockets.Conn
   alias XMediaLib.Stun
 
+  # Associates a peer reflexive IP and port with a given allocation session
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
     Logger.debug("creating a permission #{inspect(conn.decoded_message)}")
+    # Get associated 5Tuple
     tuple5 = Tuple5.to_map(Tuple5.create(conn, :_))
 
+    # Extract peer address
     with {_ip, _port} = p <- Map.get(attrs, :xor_peer_address),
+         # Lookup allocation from store
          {:ok, [client, _peer_address, _, _]} <- Store.lookup(tuple5) do
       Logger.debug("createperm #{inspect(client)}, #{inspect(p)}")
       AllocateClient.add_permissions(client, p)
       Conn.response(conn, :success)
     else
       {:error, _} ->
+        # No allocation registered for 5Tuple
         Logger.debug("client does not exist #{inspect(tuple5)} (createperm)")
         Conn.response(conn, 400, "Bad Request")
 
       _ ->
+        # Permission data not present in packet
         Logger.debug("no permissions sent")
         Conn.response(conn, 400, "Bad Request")
     end

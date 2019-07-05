@@ -37,9 +37,13 @@ defmodule Xirsys.XTurn.Actions.ChannelBind do
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
     Logger.debug("channelbinding #{inspect(conn.decoded_message)}")
 
+    # Do the attributes contain a channel number and peer address pair?
     with true <- Map.has_key?(attrs, :channel_number) and Map.has_key?(attrs, :xor_peer_address),
+         # Extract channel number from binary
          <<channel_number::16, _::16>> <- Map.get(attrs, :channel_number),
+         # Extract peer address
          peer_address = {_, _} <- Map.get(attrs, :xor_peer_address),
+         # Retrieve session 5Tuple
          tuple5 <- Tuple5.to_map(Tuple5.create(conn, :_)) do
       Logger.debug(
         "#{Channels.exists({channel_number, tuple5})}, #{Channels.exists({peer_address, tuple5})} = #{
@@ -47,9 +51,11 @@ defmodule Xirsys.XTurn.Actions.ChannelBind do
         }"
       )
 
+      # Check if channel bind registration already exists
       exists =
         Channels.exists({channel_number, tuple5}) or Channels.exists({peer_address, tuple5})
 
+      # Maybe register (store) channel bind details
       do_channelbind(conn, channel_number, peer_address, tuple5, exists)
     else
       _ ->
@@ -58,6 +64,7 @@ defmodule Xirsys.XTurn.Actions.ChannelBind do
     end
   end
 
+  # Registers a channel bind request with a session allocation
   defp do_channelbind(conn, channel_number, peer_address, tuple5, false)
        when channel_number >= 0x4000 and channel_number <= 0x7FFE do
     case Store.lookup(tuple5) do

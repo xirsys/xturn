@@ -33,12 +33,17 @@ defmodule Xirsys.XTurn.Actions.HasRequestedTransport do
 
   @udp_proto <<17, 0, 0, 0>>
 
+  # Documented in RFC5766, though not so useful when only one
+  # transport type allowed
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
+    # Requested transport in header?
     with true <- Map.has_key?(attrs, :requested_transport),
+         # Requested transport should be UDP
          @udp_proto <- Map.get(attrs, :requested_transport) do
       conn
     else
       false ->
+        # Requested transport not in header
         Logger.error(
           "Request transport not provided from ip:#{inspect(conn.client_ip)}, port:#{
             inspect(conn.client_port)
@@ -48,6 +53,7 @@ defmodule Xirsys.XTurn.Actions.HasRequestedTransport do
         Conn.response(conn, 400, "Bad Request")
 
       _ ->
+        # Only UDP supported. Not a WebRTC app?
         Logger.error(
           "Unsupported transport protocol requested from ip:#{inspect(conn.client_ip)}, port:#{
             inspect(conn.client_port)

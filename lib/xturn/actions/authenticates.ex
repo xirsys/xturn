@@ -38,14 +38,18 @@ defmodule Xirsys.XTurn.Actions.Authenticates do
         %Conn{force_auth: force_auth, message: message, decoded_message: %Stun{attrs: attrs}} =
           conn
       ) do
+    # Do the attributes contain username and realm?
     with true <-
            Map.has_key?(attrs, :username) and Map.has_key?(attrs, :realm) and
              (@auth.required or force_auth),
+         # Re-decode STUN packet using integrity check
          %Stun{} = turn_dec <-
            process_integrity(message, Map.get(attrs, :username), Map.get(attrs, :realm)) do
+      # Update and return connection object
       %Conn{conn | decoded_message: turn_dec}
     else
       _ ->
+        # Something went wrong. Flag unauthorized
         if @auth.required or force_auth,
           do: Conn.response(conn, 401, "Unauthorized"),
           else: conn

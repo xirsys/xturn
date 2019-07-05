@@ -38,24 +38,33 @@ defmodule Xirsys.XTurn.Actions.SendIndication do
     false
   end
 
+  # Handles sending data from Client to Peer
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
     Logger.debug("send indication #{inspect(conn.decoded_message)}")
+    # Get 5Tuple lookup match
     tuple5 = Tuple5.to_map(Tuple5.create(conn, :_))
 
+    # Data present in header? Receiver address present?
     with true <- Map.has_key?(attrs, :data) and Map.has_key?(attrs, :xor_peer_address),
+         # Extract data
          data <- Map.get(attrs, :data),
+         # Extract receiver address
          peer_address = {_pip, _port} <- Map.get(attrs, :xor_peer_address),
+         # Get 5Tuple registration
          {:ok, [client, {_relay_ip, _relay_port}, socket, permission_cache]} <-
            Store.lookup(tuple5) do
       Logger.debug("sending indication to peer")
+      # Transmit data to peer
       AllocateClient.send_indication(client, peer_address, data, socket, permission_cache)
       conn
     else
       {:error, _} ->
+        # 5Tuple not present, so allocation must not be valid (or present)
         Logger.debug("client does not exist #{inspect(tuple5)} (send indication)")
         false
 
       _ ->
+        # Missing data from STUN packet header
         Logger.debug("Required attributes not found during send indication")
         false
     end
