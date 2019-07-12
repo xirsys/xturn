@@ -1,5 +1,9 @@
 # Changelog
 
+12-07-2019 - Fixed issue with integrity binding failing due to non-hashing of keys.
+
+05-07-2019 - Simplified repo by moving common functionality to external libraries. XTurn repo now focuses on TURN specific functionality. Also added data receipt hooks for plugin capabilities.
+
 22-01-2019 - Updated to work with latest XMediaLib
 
 19-11-2018 - Simplify Pipelines module, moving pipeline descriptors to the config file. Also added [Getting Started](getting-started.md) page, describing testing the server.
