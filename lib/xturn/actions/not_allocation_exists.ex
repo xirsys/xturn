@@ -60,18 +60,19 @@ defmodule Xirsys.XTurn.Actions.NotAllocationExists do
         {:ok, [_client, {_ip, port}, _, _]} = Store.lookup(tup5)
         Logger.debug("#{inspect(port)}")
 
-        nattrs = [
+        nattrs = %{
           # reservation_token: <<0::64>>,
           xor_mapped_address: {conn.client_ip, conn.client_port},
           xor_relayed_address: {Socket.server_ip(), port},
           lifetime: <<600::32>>
-        ]
+        }
 
         # Respond positively, since this is not an error.
         Logger.debug("integrity = #{conn.decoded_message.integrity}")
         Logger.debug("Allocated")
-        Conn.response(conn, :success, nattrs)
-        Conn.halt(conn)
+        conn
+        |> Conn.response(:success, nattrs)
+        |> Conn.halt()
     end
   end
 end
