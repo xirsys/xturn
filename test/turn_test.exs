@@ -24,7 +24,7 @@ defmodule TurnTest do
       requested_transport: <<17, 0, 0, 0>>
     }
   }
-  @realm "xirsys.com"
+  @realm "xturn.me"
   @username "guest"
   @password "guest"
 

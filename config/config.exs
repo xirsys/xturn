@@ -8,7 +8,7 @@ config :xturn,
   authentication: %{required: false, username: "guest", credential: "guest"},
   # for some reason, turnutils_uclient doesn't set permissions for DTLS
   permissions: %{required: true},
-  realm: "xturn.com",
+  realm: "xturn.me",
   listen: [
     {:udp, '0.0.0.0', 3478},
     {:tcp, '0.0.0.0', 3478},
@@ -16,7 +16,7 @@ config :xturn,
     {:tcp, '0.0.0.0', 5349, :secure}
   ],
   server_type: "turn",
-  server_id: "xturn.com",
+  server_id: "xturn.me",
   server_ip: {127, 0, 0, 1},
   server_local_ip: {0, 0, 0, 0},
   certs: [
