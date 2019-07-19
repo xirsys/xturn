@@ -7,7 +7,7 @@
   "ex_doc": {:hex, :ex_doc, "0.18.4", "4406b8891cecf1352f49975c6d554e62e4341ceb41b9338949077b0d4a97b949", [:mix], [{:earmark, "~> 1.1", [hex: :earmark, repo: "hexpm", optional: false]}], "hexpm"},
   "exts": {:hex, :exts, "0.3.4", "ec2af096ab4494c087a9615fffe9d5ba8a0fa0ccc465b340ee522ed7aff79078", [:mix], [{:datastructures, "~> 0.2", [hex: :datastructures, repo: "hexpm", optional: false]}], "hexpm"},
   "skerl": {:git, "https://github.com/xirsys/skerl.git", "406a431b0140305a739457bea067d6e4d2852681", []},
-  "xmedialib": {:git, "https://github.com/xirsys/xmedialib", "b4286e177e2b8e956290a93a8b23097eaac63e5c", []},
-  "xturn_cache": {:git, "https://github.com/xirsys/xturn-cache", "6bee97347bfe1d9ae7ba34e47507e4d2c943c431", []},
-  "xturn_sockets": {:git, "https://github.com/xirsys/xturn-sockets", "fbb2a1cd17c7d895a91c855c3d062e09ecf01b32", []},
+  "xmedialib": {:git, "https://github.com/xirsys/xmedialib", "f0da78d1110d688b4ca579585cbf010e078a15c5", [tag: "v0.1.0"]},
+  "xturn_cache": {:git, "https://github.com/xirsys/xturn-cache", "6bee97347bfe1d9ae7ba34e47507e4d2c943c431", [tag: "v0.1.0"]},
+  "xturn_sockets": {:git, "https://github.com/xirsys/xturn-sockets", "9eba3c234af8cbcdeffc92b5abf26abc67add6f7", [tag: "v0.1.0"]},
 }

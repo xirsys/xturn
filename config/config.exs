@@ -20,8 +20,9 @@ config :xturn,
   server_ip: {127, 0, 0, 1},
   server_local_ip: {0, 0, 0, 0},
   certs: [
-    {:certfile, "certs/server.crt"},
-    {:keyfile, "certs/server.key"}
+    cacertfile: 'certs/xturn.ca.pem',
+    certfile: 'certs/xturn.cert.pem',
+    keyfile: 'certs/xturn.key.pem'
   ],
   client_hooks: [],
   peer_hooks: [],

@@ -70,6 +70,7 @@ defmodule Xirsys.XTurn.Actions.NotAllocationExists do
         # Respond positively, since this is not an error.
         Logger.debug("integrity = #{conn.decoded_message.integrity}")
         Logger.debug("Allocated")
+
         conn
         |> Conn.response(:success, nattrs)
         |> Conn.halt()

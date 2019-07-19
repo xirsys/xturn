@@ -29,13 +29,10 @@ defmodule Xirsys.XTurn.Mixfile do
 
   defp deps() do
     [
-      {:xmedialib,
-       git: "https://github.com/xirsys/xmedialib",
-       override: true},
+      {:xmedialib, git: "https://github.com/xirsys/xmedialib", tag: "v0.1.0", override: true},
       {:xturn_sockets,
-       git: "https://github.com/xirsys/xturn-sockets",
-       override: true},
-      {:xturn_cache, git: "https://github.com/xirsys/xturn-cache"},
+       git: "https://github.com/xirsys/xturn-sockets", tag: "v0.1.0", override: true},
+      {:xturn_cache, git: "https://github.com/xirsys/xturn-cache", tag: "v0.1.0"},
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.18.3"},
       {:exts, "~> 0.3.4"}
