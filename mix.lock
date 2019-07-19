@@ -10,7 +10,7 @@
   "makeup_elixir": {:hex, :makeup_elixir, "0.14.0", "cf8b7c66ad1cff4c14679698d532f0b5d45a3968ffbcbfd590339cb57742f1ae", [:mix], [{:makeup, "~> 1.0", [hex: :makeup, repo: "hexpm", optional: false]}], "hexpm"},
   "nimble_parsec": {:hex, :nimble_parsec, "0.5.0", "90e2eca3d0266e5c53f8fbe0079694740b9c91b6747f2b7e3c5d21966bba8300", [:mix], [], "hexpm"},
   "skerl": {:git, "https://github.com/xirsys/skerl.git", "406a431b0140305a739457bea067d6e4d2852681", []},
-  "xmedialib": {:hex, :xmedialib, "0.1.0", "5c1e1857ec54ff0a25a7648faea65cf3e40a1e659b514f4841be0fc96845a65a", [:make, :mix], [{:elixir_make, "~> 0.4", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
-  "xturn_cache": {:hex, :xturn_cache, "0.1.0", "76514728630848e565f19609e799f26b8e78cdda9b82e41cd2370527eb7d8f7e", [:mix], [], "hexpm"},
-  "xturn_sockets": {:hex, :xturn_sockets, "0.1.0", "e3baaf5a4e3abe43d1d6e9a403fefcd7c04a63caac65433c2bef8a6bf32ae397", [:mix], [{:xmedialib, "~> 0.1.0", [hex: :xmedialib, repo: "hexpm", optional: false]}], "hexpm"},
+  "xmedialib": {:hex, :xmedialib, "0.1.0", "ef02ef19d1ce7aef04cce24eb55b216443df49f8d035f37143fd3fd06290362f", [:make, :mix], [{:elixir_make, "~> 0.4", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
+  "xturn_cache": {:hex, :xturn_cache, "0.1.0", "808fd3969c7bcbb37d3409f9713d7a1a6a89341308bcd9e86c92e4f5d15031fd", [:mix], [], "hexpm"},
+  "xturn_sockets": {:hex, :xturn_sockets, "0.1.0", "becf6ec07ef23f9be8169af074fa0945b106d0cfae316ea9e8a2b1648ebe26d2", [:mix], [{:xmedialib, "~> 0.1.0", [hex: :xmedialib, repo: "hexpm", optional: false]}], "hexpm"},
 }

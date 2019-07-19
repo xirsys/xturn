@@ -259,18 +259,18 @@ defmodule Xirsys.XTurn.Allocate.Client do
       state.channels
     )
 
-    Cache.append_item_to_store(state.channels, {channel_number, channel})
+    Cache.append(state.channels, {channel_number, channel})
     {:reply, :ok, state, Time.milliseconds_left(state)}
   end
 
   def handle_call({:remove_channel, channel_number}, _from, state) do
     Channels.delete(channel_number)
-    Cache.remove_item_from_store(state.channels, channel_number)
+    Cache.remove(state.channels, channel_number)
     {:reply, :ok, state, Time.milliseconds_left(state)}
   end
 
   def handle_call({:remove_permission, id}, _from, state) do
-    Cache.remove_item_from_store(state.permissions, id)
+    Cache.remove(state.permissions, id)
     {:reply, :ok, state, Time.milliseconds_left(state)}
   end
 
@@ -279,7 +279,7 @@ defmodule Xirsys.XTurn.Allocate.Client do
       "adding permissions #{inspect(state.permissions)} #{inspect(perm)} #{inspect(state.tuple5)}"
     )
 
-    Cache.append_item_to_store(state.permissions, perm)
+    Cache.append(state.permissions, perm)
     {:noreply, state, Time.milliseconds_left(state)}
   end
 
@@ -295,7 +295,7 @@ defmodule Xirsys.XTurn.Allocate.Client do
   end
 
   def handle_cast({:refresh_channel, id}, state) do
-    Cache.append_item_to_store(state.channels, {id, nil})
+    Cache.append(state.channels, {id, nil})
     {:noreply, state, Time.milliseconds_left(state)}
   end
 

@@ -49,7 +49,7 @@ defmodule Xirsys.XTurn.Mixfile do
 
   defp package do
     %{
-      files: ["lib", "mix.exs", "README.md", "LICENSE.md", "CHANGELOG.md"],
+      files: ["lib", "mix.exs", "docs", "README.md", "LICENSE.md", "CHANGELOG.md"],
       maintainers: ["Jahred Love"],
       licenses: ["Apache 2.0"],
       links: %{"Github" => "https://github.com/xirsys/xturn"}

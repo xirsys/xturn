@@ -1,5 +1,7 @@
 # Changelog
 
+19-07-2019 - Package for deploy to hex.pm
+
 12-07-2019 - Fixed issue with integrity binding failing due to non-hashing of keys.
 
 05-07-2019 - Simplified repo by moving common functionality to external libraries. XTurn repo now focuses on TURN specific functionality. Also added data receipt hooks for plugin capabilities.
