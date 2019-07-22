@@ -37,7 +37,6 @@ defmodule Xirsys.XTurn.Actions.Allocate do
   @tcp_proto <<6, 0, 0, 0>>
 
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
-    Logger.debug("allocating #{inspect(conn.decoded_message)}")
     # Acquire the transport type. Currently always :udp
     proto = Map.get(attrs, :requested_transport)
 

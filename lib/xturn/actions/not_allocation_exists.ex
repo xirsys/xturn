@@ -58,7 +58,6 @@ defmodule Xirsys.XTurn.Actions.NotAllocationExists do
 
         # Conn.response(conn, 437, "Allocation Mismatch")
         {:ok, [_client, {_ip, port}, _, _]} = Store.lookup(tup5)
-        Logger.debug("#{inspect(port)}")
 
         nattrs = %{
           # reservation_token: <<0::64>>,

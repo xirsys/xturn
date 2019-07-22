@@ -5,7 +5,7 @@ config :logger,
   compile_time_purge_level: :debug
 
 config :xturn,
-  authentication: %{required: false, username: "guest", credential: "guest"},
+  authentication: %{required: true, username: "guest", credential: "guest"},
   # for some reason, turnutils_uclient doesn't set permissions for DTLS
   permissions: %{required: true},
   realm: "xturn.me",

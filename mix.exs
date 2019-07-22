@@ -18,7 +18,7 @@ defmodule Xirsys.XTurn.Mixfile do
         extras: ["README.md", "LICENSE.md"],
         main: "readme"
       ],
-      escript: [main_module: Xirsys.XTurn],
+      escript: [main_module: Xirsys.XTurn]
     ]
   end
 

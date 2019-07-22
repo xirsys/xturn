@@ -39,20 +39,26 @@ defmodule Xirsys.XTurn.Actions.Authenticates do
           conn
       ) do
     # Do the attributes contain username and realm?
-    with true <-
-           Map.has_key?(attrs, :username) and Map.has_key?(attrs, :realm) and
-             (@auth.required or force_auth),
+    with {:skip, false} <- {:skip, not (@auth.required or force_auth)},
+         true <- Map.has_key?(attrs, :username) and Map.has_key?(attrs, :realm),
          # Re-decode STUN packet using integrity check
          %Stun{} = turn_dec <-
            process_integrity(message, Map.get(attrs, :username), Map.get(attrs, :realm)) do
       # Update and return connection object
       %Conn{conn | decoded_message: turn_dec}
     else
+      {:skip, true} ->
+        conn
+
       _ ->
         # Something went wrong. Flag unauthorized
-        if @auth.required or force_auth,
-          do: Conn.response(conn, 401, "Unauthorized"),
-          else: conn
+        if @auth.required or force_auth do
+          conn
+          |> Conn.response(401, "Unauthorized")
+          |> Conn.halt()
+        else
+          conn
+        end
     end
   end
 
@@ -71,7 +77,7 @@ defmodule Xirsys.XTurn.Actions.Authenticates do
       %Stun{turn | key: key}
     else
       e ->
-        Logger.info("Integrity process failed: #{inspect(e)}")
+        Logger.warn("Integrity process failed: #{inspect(e)}")
         false
     end
   end
