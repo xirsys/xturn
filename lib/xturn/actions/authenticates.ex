@@ -66,7 +66,8 @@ defmodule Xirsys.XTurn.Actions.Authenticates do
     with ^username <- @auth.username,
          key <- username <> ":" <> realm <> ":" <> @auth.credential,
          _ <- Logger.info("KEY = #{inspect(key)}"),
-         {:ok, turn} <- Stun.decode(msg, key) do
+         hkey <- :crypto.hash(:md5, key),
+         {:ok, turn} <- Stun.decode(msg, hkey) do
       %Stun{turn | key: key}
     else
       e ->

@@ -1,5 +1,7 @@
 # Changelog
 
+22-07-2019 - Hash key before sending to STUN.  Update dependency versions.
+
 19-07-2019 - Package for deploy to hex.pm
 
 12-07-2019 - Fixed issue with integrity binding failing due to non-hashing of keys.
