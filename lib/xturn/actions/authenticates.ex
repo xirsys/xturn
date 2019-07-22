@@ -74,7 +74,7 @@ defmodule Xirsys.XTurn.Actions.Authenticates do
          _ <- Logger.info("KEY = #{inspect(key)}"),
          hkey <- :crypto.hash(:md5, key),
          {:ok, turn} <- Stun.decode(msg, hkey) do
-      %Stun{turn | key: key}
+      %Stun{turn | key: hkey}
     else
       e ->
         Logger.warn("Integrity process failed: #{inspect(e)}")
