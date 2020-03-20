@@ -5,8 +5,8 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="ExDoc v0.21.0">
-    <meta name="project" content="xturn v0.1.1">
-    <title>XTurn - Xirsys TURN Server in Elixir — xturn v0.1.1</title>
+    <meta name="project" content="xturn v0.1.2">
+    <title>XTurn - Xirsys TURN Server in Elixir — xturn v0.1.2</title>
     <link rel="stylesheet" href="dist/html-6533ecd75f89a4bc2271.css" />
       <link rel="canonical" href="https://hexdocs.pm/xturn/readme.html" />
     <script src="dist/sidebar_items-ea2a7528d9.js"></script>
@@ -45,7 +45,7 @@
       <a href="https://xturn.me" class="sidebar-projectName">
 xturn      </a>
       <h2 class="sidebar-projectVersion">
-        v0.1.1
+        v0.1.2
       </h2>
     </div>
   </div>
@@ -98,23 +98,23 @@ xturn      </a>
 <hr class="thin"/>
 <p>The listening ports should be set, next.  Standard ports are already set, but it can oftimes be beneficial to open on 80 and 443, too.  Make sure to specify <code class="inline">:secure</code> on known secure ports, which will enable SSL.</p>
 <pre><code class="nohighlight makeup elixir"><samp class="n">config</samp><samp class="w"> </samp><samp class="ss">:xturn</samp><samp class="p">,</samp><samp class="w">
-  </samp><samp class="ss">authentication</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="9676053260-1">%{</samp><samp class="ss">required</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="no">true</samp><samp class="p" data-group-id="9676053260-1">}</samp><samp class="p">,</samp><samp class="w">
-  </samp><samp class="ss">permissions</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="9676053260-2">%{</samp><samp class="ss">required</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="no">false</samp><samp class="p" data-group-id="9676053260-2">}</samp><samp class="p">,</samp><samp class="w">
+  </samp><samp class="ss">authentication</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="0801974831-1">%{</samp><samp class="ss">required</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="no">true</samp><samp class="p" data-group-id="0801974831-1">}</samp><samp class="p">,</samp><samp class="w">
+  </samp><samp class="ss">permissions</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="0801974831-2">%{</samp><samp class="ss">required</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="no">false</samp><samp class="p" data-group-id="0801974831-2">}</samp><samp class="p">,</samp><samp class="w">
   </samp><samp class="ss">realm</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="s">&quot;xirsys.com&quot;</samp><samp class="p">,</samp><samp class="w">
-  </samp><samp class="ss">listen</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="9676053260-3">[</samp><samp class="w">
-            </samp><samp class="p" data-group-id="9676053260-4">{</samp><samp class="ss">:udp</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="sc">&#39;0.0.0.0&#39;</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">3478</samp><samp class="p" data-group-id="9676053260-4">}</samp><samp class="p">,</samp><samp class="w">
-            </samp><samp class="p" data-group-id="9676053260-5">{</samp><samp class="ss">:tcp</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="sc">&#39;0.0.0.0&#39;</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">3478</samp><samp class="p" data-group-id="9676053260-5">}</samp><samp class="p">,</samp><samp class="w">
-            </samp><samp class="p" data-group-id="9676053260-6">{</samp><samp class="ss">:udp</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="sc">&#39;0.0.0.0&#39;</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">5349</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="ss">:secure</samp><samp class="p" data-group-id="9676053260-6">}</samp><samp class="p">,</samp><samp class="w">
-            </samp><samp class="p" data-group-id="9676053260-7">{</samp><samp class="ss">:tcp</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="sc">&#39;0.0.0.0&#39;</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">5349</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="ss">:secure</samp><samp class="p" data-group-id="9676053260-7">}</samp><samp class="w">
-          </samp><samp class="p" data-group-id="9676053260-3">]</samp><samp class="p">,</samp><samp class="w">
+  </samp><samp class="ss">listen</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="0801974831-3">[</samp><samp class="w">
+            </samp><samp class="p" data-group-id="0801974831-4">{</samp><samp class="ss">:udp</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="sc">&#39;0.0.0.0&#39;</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">3478</samp><samp class="p" data-group-id="0801974831-4">}</samp><samp class="p">,</samp><samp class="w">
+            </samp><samp class="p" data-group-id="0801974831-5">{</samp><samp class="ss">:tcp</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="sc">&#39;0.0.0.0&#39;</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">3478</samp><samp class="p" data-group-id="0801974831-5">}</samp><samp class="p">,</samp><samp class="w">
+            </samp><samp class="p" data-group-id="0801974831-6">{</samp><samp class="ss">:udp</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="sc">&#39;0.0.0.0&#39;</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">5349</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="ss">:secure</samp><samp class="p" data-group-id="0801974831-6">}</samp><samp class="p">,</samp><samp class="w">
+            </samp><samp class="p" data-group-id="0801974831-7">{</samp><samp class="ss">:tcp</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="sc">&#39;0.0.0.0&#39;</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">5349</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="ss">:secure</samp><samp class="p" data-group-id="0801974831-7">}</samp><samp class="w">
+          </samp><samp class="p" data-group-id="0801974831-3">]</samp><samp class="p">,</samp><samp class="w">
   </samp><samp class="ss">server_type</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="s">&quot;turn&quot;</samp><samp class="p">,</samp><samp class="w">
   </samp><samp class="ss">server_id</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="s">&quot;turn.myserver.com&quot;</samp><samp class="p">,</samp><samp class="w">
-  </samp><samp class="ss">server_ip</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="9676053260-8">{</samp><samp class="mi">127</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">0</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">0</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">1</samp><samp class="p" data-group-id="9676053260-8">}</samp><samp class="p">,</samp><samp class="w">
-  </samp><samp class="ss">server_local_ip</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="9676053260-9">{</samp><samp class="mi">0</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">0</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">0</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">0</samp><samp class="p" data-group-id="9676053260-9">}</samp><samp class="p">,</samp><samp class="w">
-  </samp><samp class="ss">certs</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="9676053260-10">[</samp><samp class="w">
-           </samp><samp class="p" data-group-id="9676053260-11">{</samp><samp class="ss">:certfile</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="s">&quot;certs/server.crt&quot;</samp><samp class="p" data-group-id="9676053260-11">}</samp><samp class="p">,</samp><samp class="w">
-           </samp><samp class="p" data-group-id="9676053260-12">{</samp><samp class="ss">:keyfile</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="s">&quot;certs/server.key&quot;</samp><samp class="p" data-group-id="9676053260-12">}</samp><samp class="w">
-         </samp><samp class="p" data-group-id="9676053260-10">]</samp></code></pre>
+  </samp><samp class="ss">server_ip</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="0801974831-8">{</samp><samp class="mi">127</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">0</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">0</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">1</samp><samp class="p" data-group-id="0801974831-8">}</samp><samp class="p">,</samp><samp class="w">
+  </samp><samp class="ss">server_local_ip</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="0801974831-9">{</samp><samp class="mi">0</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">0</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">0</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="mi">0</samp><samp class="p" data-group-id="0801974831-9">}</samp><samp class="p">,</samp><samp class="w">
+  </samp><samp class="ss">certs</samp><samp class="p">:</samp><samp class="w"> </samp><samp class="p" data-group-id="0801974831-10">[</samp><samp class="w">
+           </samp><samp class="p" data-group-id="0801974831-11">{</samp><samp class="ss">:certfile</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="s">&quot;certs/server.crt&quot;</samp><samp class="p" data-group-id="0801974831-11">}</samp><samp class="p">,</samp><samp class="w">
+           </samp><samp class="p" data-group-id="0801974831-12">{</samp><samp class="ss">:keyfile</samp><samp class="p">,</samp><samp class="w"> </samp><samp class="s">&quot;certs/server.key&quot;</samp><samp class="p" data-group-id="0801974831-12">}</samp><samp class="w">
+         </samp><samp class="p" data-group-id="0801974831-10">]</samp></code></pre>
 <p><em>authentication</em>: specifying required as <code class="inline">true</code> will prevent connections without a valid user and password in the user store</p>
 <p><em>permissions</em>: TURN usually requires a <code class="inline">create permissions</code> call.  Setting requireed to false will allow connections without permissions being set.</p>
 <p><em>server_ip</em>: this is the public IP of your server.  Not all server setups make this aware to the app, so it&#39;s necessary to set this manually (for now).</p>

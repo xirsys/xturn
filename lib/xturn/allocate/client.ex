@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2020 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -345,7 +345,7 @@ defmodule Xirsys.XTurn.Allocate.Client do
   #########################################################################################################################
 
   defp open_port_call({policy, opts}, _from, state) do
-    case Socket.open_turn_port(Socket.server_local_ip(), policy, opts) do
+    case Socket.open_port(Socket.server_local_ip(), policy, opts) do
       {:ok, socket} ->
         {:ok, port} = Socket.port(socket)
 

@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2020 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -34,7 +34,7 @@ defmodule Xirsys.XTurn do
 
     Xirsys.XTurn.Supervisor.start_link(
       Application.get_env(:xturn, :listen),
-      Xirsys.XTurn.Pipeline
+      Xirsys.XTurn.SockImpl
     )
   end
 

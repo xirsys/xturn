@@ -5,7 +5,7 @@ defmodule Xirsys.XTurn.Mixfile do
     [
       app: :xturn,
       name: "xturn",
-      version: "0.1.2",
+      version: "0.1.3",
       elixir: "~> 1.7",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
@@ -39,7 +39,7 @@ defmodule Xirsys.XTurn.Mixfile do
   defp deps() do
     [
       {:xmedialib, "~> 0.1.2"},
-      {:xturn_sockets, "~> 0.1.1"},
+      {:xturn_sockets, github: "xirsys/xturn-sockets"},
       {:xturn_cache, "~> 0.1.0"},
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev},

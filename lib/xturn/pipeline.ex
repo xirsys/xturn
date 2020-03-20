@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2020 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -28,13 +28,13 @@ defmodule Xirsys.XTurn.Pipeline do
   """
   # import ExProf.Macro
   require Logger
-  @vsn "0"
 
   @stun_marker 0
   # @udp_proto <<17, 0, 0, 0>>
   # @tcp_proto <<6, 0, 0, 0>>
 
   alias Xirsys.Sockets.{Socket, Conn}
+  alias Xirsys.XTurn.SockImpl
 
   alias XMediaLib.Stun
 
@@ -48,7 +48,7 @@ defmodule Xirsys.XTurn.Pipeline do
   def process_message(%Conn{message: <<@stun_marker::2, _::14, _rest::binary>> = msg} = conn) do
     Logger.debug("TURN Data received")
     {:ok, turn} = Stun.decode(msg)
-    do_request(%Conn{conn | decoded_message: turn}) |> Conn.send()
+    do_request(%Conn{conn | decoded_message: turn}) |> SockImpl.send()
   end
 
   @doc """
