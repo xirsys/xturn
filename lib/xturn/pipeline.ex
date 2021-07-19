@@ -36,7 +36,7 @@ defmodule Xirsys.XTurn.Pipeline do
   alias Xirsys.Sockets.{Socket, Conn}
   alias Xirsys.XTurn.SockImpl
 
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   @pipes Application.get_env(:xturn, :pipes)
 
@@ -51,9 +51,7 @@ defmodule Xirsys.XTurn.Pipeline do
     do_request(%Conn{conn | decoded_message: turn}) |> SockImpl.send()
   end
 
-  @doc """
-  Handles TURN Channel Data messages [RFC5766] section 11
-  """
+  # Handles TURN Channel Data messages [RFC5766] section 11
   def process_message(%Conn{message: <<1::2, _num::14, length::16, _rest::binary>>} = conn) do
     Logger.debug(
       "TURN channeldata request (length: #{length}) from client at ip:#{inspect(conn.client_ip)}, port:#{
@@ -64,9 +62,7 @@ defmodule Xirsys.XTurn.Pipeline do
     execute(conn, :channeldata)
   end
 
-  @doc """
-  Handles errored TURN message extraction
-  """
+  # Handles errored TURN message extraction
   def process_message(%Conn{message: <<_::binary>>}) do
     Logger.error("Error in extracting TURN message")
     false

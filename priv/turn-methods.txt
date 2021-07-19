@@ -1,0 +1,10 @@
+1	binding
+3	allocate
+4	refresh
+6	send
+7	data
+8	createperm
+9	channelbind
+10	connect
+11	connection_bind
+12	connection_attempt

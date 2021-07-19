@@ -32,7 +32,7 @@ defmodule Xirsys.XTurn.Actions.Allocate do
   alias Xirsys.XTurn.Allocate.Client, as: AllocateClient
   alias Xirsys.XTurn.Tuple5
   alias Xirsys.Sockets.{Socket, Conn}
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   @tcp_proto <<6, 0, 0, 0>>
 

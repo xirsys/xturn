@@ -88,7 +88,7 @@ For questions or suggestions, please email experts@xirsys.com
 Copyright
 ===
 
-Copyright (c) 2013 - 2019 Xirsys LLC
+Copyright (c) 2013 - 2020 Xirsys LLC
 
 All rights reserved.
 

@@ -32,7 +32,7 @@ defmodule Xirsys.XTurn.Actions.ChannelBind do
   alias Xirsys.XTurn.Allocate.Client, as: AllocateClient
   alias Xirsys.XTurn.Tuple5
   alias Xirsys.Sockets.Conn
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
     Logger.debug("channelbinding #{inspect(conn.decoded_message)}")

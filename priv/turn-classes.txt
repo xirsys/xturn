@@ -1,0 +1,4 @@
+0	request
+1	indication
+2	success
+3	error

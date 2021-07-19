@@ -30,7 +30,7 @@ defmodule Xirsys.XTurn.Actions.Authenticates do
   """
   require Logger
   alias Xirsys.Sockets.Conn
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   @auth Application.get_env(:xturn, :authentication)
 

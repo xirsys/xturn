@@ -1,7 +1,7 @@
 defmodule Xirsys.XTurn.SockImpl do
   alias Xirsys.XTurn.Pipeline
   alias Xirsys.Sockets.{Conn, Response}
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
   require Logger
 
   @channel_msg 1
@@ -16,31 +16,37 @@ defmodule Xirsys.XTurn.SockImpl do
   @spec process_buffer(binary()) :: {binary() | nil, binary()}
   def process_buffer(bin) when byte_size(bin) <= 4, do: {nil, bin}
 
-  def process_buffer(<<type::2, _::14, body_bytes::16, _body::binary-size(body_bytes), _::binary>> = bin)
-       when type == @send_msg or type == @channel_msg do
+  def process_buffer(
+        <<type::2, _::14, body_bytes::16, _body::binary-size(body_bytes), _::binary>> = bin
+      )
+      when type == @send_msg or type == @channel_msg do
     msg_bytes = pad_body_bytes(type, body_bytes)
     process_data(bin, msg_bytes)
   end
 
   def process_buffer(<<type::2, _::14, _body_bytes::16, _::binary>> = bin)
-       when type == @send_msg or type == @channel_msg,
-       # message is not yet long enough 
-       do: {nil, bin}
+      when type == @send_msg or type == @channel_msg,
+      # message is not yet long enough 
+      do: {nil, bin}
 
   def process_buffer(<<type::2, _::14, _::binary>> = bin) do
     Logger.error("Unknown message type : #{inspect(type)}")
     {nil, bin}
   end
 
+  def process_buffer(nil), do: {nil, ""}
+
   @doc """
   Dispatches the socket data to the application
   """
   @spec dispatch(%Conn{}) :: %Conn{}
   def dispatch(%Conn{message: <<type::2, _::30, _body::binary>>} = conn)
-       when type == @send_msg or type == @channel_msg do
+      when type == @send_msg or type == @channel_msg do
     Pipeline.process_message(%Conn{conn | listener: self()})
     conn
   end
+
+  def dispatch(%Conn{message: _} = conn), do: conn
 
   @doc """
   If a response message has been set, then we must notify the client according
@@ -59,15 +65,8 @@ defmodule Xirsys.XTurn.SockImpl do
     |> Conn.send()
   end
 
-  def send(%Conn{} = conn) do
-    Logger.info("SEND: #{inspect(conn)}")
-    conn
-  end
-
-  def send(v) do
-    Logger.info("SEND: #{inspect(v)}")
-    v
-  end
+  # catchall
+  def send(_), do: :ok
 
   # ----------------------------
   # Private functions
@@ -79,7 +78,7 @@ defmodule Xirsys.XTurn.SockImpl do
   defp process_data(bin, required_size) when required_size > byte_size(bin), do: {nil, bin}
 
   defp process_data(bin, required_size) when required_size == byte_size(bin), do: {bin, <<>>}
-  
+
   defp process_data(bin, required_size) do
     <<turn::binary-size(required_size), tail::binary>> = bin
     {turn, tail}
@@ -112,13 +111,13 @@ defmodule Xirsys.XTurn.SockImpl do
       end
 
     fingerprint = turn.integrity
-    Logger.info("#{inspect(new_attrs)}")
 
     msg = %Stun{turn | class: class, fingerprint: fingerprint, attrs: new_attrs}
 
     %Conn{
       conn
-      | decoded_message: msg, message: Stun.encode(msg)
+      | decoded_message: msg,
+        message: Stun.encode(msg)
     }
   end
 

@@ -31,7 +31,7 @@ defmodule Xirsys.XTurn.Actions.NotAllocationExists do
   require Logger
   alias Xirsys.XTurn.Allocate.Store
   alias Xirsys.Sockets.{Socket, Conn}
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
     # Create 5Tuple match criteria for search

@@ -31,7 +31,7 @@ defmodule Xirsys.XTurn.Actions.Refresh do
   alias Xirsys.XTurn.Allocate.Client, as: AllocateClient
   alias Xirsys.XTurn.Tuple5
   alias Xirsys.Sockets.Conn
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   # Used to update allocation TTL (keep-alive)
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do

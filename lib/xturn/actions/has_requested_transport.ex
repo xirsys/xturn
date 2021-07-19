@@ -29,7 +29,7 @@ defmodule Xirsys.XTurn.Actions.HasRequestedTransport do
   """
   require Logger
   alias Xirsys.Sockets.Conn
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   @udp_proto <<17, 0, 0, 0>>
 

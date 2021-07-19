@@ -1,5 +1,9 @@
 # Changelog
 
+07-01-2021 - Added Docker and Kubernetes files with support in the application for auto-scaling.
+
+24-03-2020 - Updated to use the latest version of xturn-sockets, thereby simplifying package receipt and dispatch.
+
 22-07-2019 - Hash key before sending to STUN.  Update dependency versions.  Fixed hash key correctly going to integrity binding.
 
 19-07-2019 - Package for deploy to hex.pm

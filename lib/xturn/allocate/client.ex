@@ -1,4 +1,3 @@
-### ----------------------------------------------------------------------
 ###
 ### Copyright (c) 2013 - 2020 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
@@ -40,7 +39,7 @@ defmodule Xirsys.XTurn.Allocate.Client do
   alias Xirsys.XTurn.Tuple5
   alias Xirsys.XTurn.Timing, as: Time
   alias Xirsys.Sockets.Socket
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   defmodule State do
     @moduledoc """
