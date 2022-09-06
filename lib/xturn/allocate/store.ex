@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2020 Jahred Love and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -63,6 +63,9 @@ defmodule Xirsys.XTurn.Allocate.Store do
 
   def delete(key),
     do: :ets.delete(__MODULE__, key)
+
+  def to_list(),
+    do: :ets.tab2list(__MODULE__)
 
   defp match(criteria) do
     lookup = Exts.match(__MODULE__, criteria)

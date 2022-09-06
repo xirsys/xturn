@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2020 Jahred Love and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -54,9 +54,7 @@ defmodule Xirsys.XTurn.Pipeline do
   # Handles TURN Channel Data messages [RFC5766] section 11
   def process_message(%Conn{message: <<1::2, _num::14, length::16, _rest::binary>>} = conn) do
     Logger.debug(
-      "TURN channeldata request (length: #{length}) from client at ip:#{inspect(conn.client_ip)}, port:#{
-        inspect(conn.client_port)
-      }"
+      "TURN channeldata request (length: #{length}) from client at ip:#{inspect(conn.client_ip)}, port:#{inspect(conn.client_port)}"
     )
 
     execute(conn, :channeldata)
@@ -83,15 +81,13 @@ defmodule Xirsys.XTurn.Pipeline do
   @spec do_request(%Conn{}) :: %Conn{} | false
   def do_request(%Conn{decoded_message: %Stun{class: :request, method: :binding}} = conn) do
     Logger.debug(
-      "STUN request from client at ip:#{inspect(conn.client_ip)}, port:#{
-        inspect(conn.client_port)
-      } with ip:#{inspect(conn.server_ip)}, port:#{inspect(conn.server_port)}"
+      "STUN request from client at ip:#{inspect(conn.client_ip)}, port:#{inspect(conn.client_port)} with ip:#{inspect(conn.server_ip)}, port:#{inspect(conn.server_port)}"
     )
 
     attrs = %{
       xor_mapped_address: {conn.client_ip, conn.client_port},
       mapped_address: {conn.client_ip, conn.client_port},
-      response_origin: {Socket.server_ip(), conn.server_port}
+      response_origin: {conn.server_ip, conn.server_port}
     }
 
     Conn.response(conn, :success, attrs)
@@ -100,9 +96,7 @@ defmodule Xirsys.XTurn.Pipeline do
   def do_request(%Conn{decoded_message: %Stun{class: class, method: method}} = conn)
       when class in [:request, :indication] do
     Logger.debug(
-      "TURN #{method} #{class} from client at ip:#{inspect(conn.server_ip)}, port:#{
-        inspect(conn.server_port)
-      }"
+      "TURN #{method} #{class} from client at ip:#{inspect(conn.server_ip)}, port:#{inspect(conn.server_port)}"
     )
 
     execute(conn, method)

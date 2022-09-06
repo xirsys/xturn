@@ -3,9 +3,8 @@ defmodule StunTest do
   use ExUnit.Case
   require Logger
 
-  alias XMediaLib.Stun
   alias Xirsys.Sockets.Conn
-  alias Xirsys.XTurn.Pipeline
+  alias Xirsys.XTurn.{Stun, Pipeline}
   alias Xirsys.Sockets.Socket
 
   @conn %Conn{
@@ -44,7 +43,7 @@ defmodule StunTest do
            "must return a mapped-address"
 
     assert Map.get(conn.response.attrs || %{}, :response_origin) ==
-             {Socket.server_ip(), @conn.server_port},
+             {@conn.server_ip, @conn.server_port},
            "must return a response-origin"
   end
 

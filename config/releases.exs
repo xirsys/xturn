@@ -4,27 +4,42 @@ config :logger,
   level: :info
 
 realm_name = System.fetch_env!("REALM")
-app_host_ip = System.fetch_env!("APP_HOST_IP")
-server_ip = System.fetch_env!("SERVER_IP")
-server_local_ip = System.fetch_env!("SERVER_LOCAL_IP")
+
+server_ip =
+  case System.fetch_env("SERVER_IP") do
+    :error ->
+      nil
+
+    {:ok, server_ip} ->
+      server_ip |> String.split(".") |> Enum.map(&String.to_integer/1) |> List.to_tuple()
+  end
+
+server_crt = System.fetch_env!("SERVER_CRT")
+server_key = System.fetch_env!("SERVER_KEY")
 
 config :xturn,
-  authentication: %{required: false, username: "guest", credential: "guest"},
-  permissions: %{required: false},
+  authentication: %{required: true, username: "guest", credential: "guest"},
+  permissions: %{required: true},
   realm: realm_name,
+  nonce: "d24ed7ae2db4c48f",
   listen: [
-    # {:udp, String.to_charlist(app_host_ip), 80},
-    # {:tcp, String.to_charlist(app_host_ip), 80},
-    {:udp, String.to_charlist(app_host_ip), 3478},
-    {:tcp, String.to_charlist(app_host_ip), 3478},
-    # {:udp, String.to_charlist(app_host_ip), 443, :secure},
-    # {:tcp, String.to_charlist(app_host_ip), 443, :secure},
-    {:udp, String.to_charlist(app_host_ip), 5349, :secure},
-    {:tcp, String.to_charlist(app_host_ip), 5349, :secure}
+    {:udp, '0.0.0.0', 80},
+    {:tcp, '0.0.0.0', 80},
+    {:udp, '0.0.0.0', 3478},
+    {:tcp, '0.0.0.0', 3478},
+    {:udp, '0.0.0.0', 443, :secure},
+    {:tcp, '0.0.0.0', 443, :secure},
+    {:udp, '0.0.0.0', 5349, :secure},
+    {:tcp, '0.0.0.0', 5349, :secure}
   ],
+  use_fingerprint: true,
   server_id: realm_name,
-  server_ip: server_ip |> String.split(".") |> Enum.map(&String.to_integer/1) |> List.to_tuple(),
-  server_local_ip: server_local_ip |> String.split(".") |> Enum.map(&String.to_integer/1) |> List.to_tuple(),
+  server_ip: server_ip,
+  server_local_ip: {0, 0, 0, 0},
+  certs: [
+    certfile: server_crt |> String.to_charlist(),
+    keyfile: server_key |> String.to_charlist()
+  ],
   client_hooks: [],
   peer_hooks: [],
   pipes: %{

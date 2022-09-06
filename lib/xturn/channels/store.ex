@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2020 Jahred Love and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -34,7 +34,7 @@ defmodule Xirsys.XTurn.Channels.Store do
   alias Xirsys.XTurn.Tuple5, as: T5
 
   def init(),
-    do: Exts.new(__MODULE__, access: :public)
+    do: Exts.new(__MODULE__, access: :public, type: :duplicate_bag)
 
   def insert(
         cid,
@@ -85,6 +85,13 @@ defmodule Xirsys.XTurn.Channels.Store do
              i3 < 256 and is_integer(i4) and i4 < 256,
       do: match({cid, {:"$1", peer_address, tuple5, :"$2", :"$3"}})
 
+  def lookup(
+        {cid, {{i1, i2, i3, i4}, _port} = peer_address}
+      )
+      when is_integer(i1) and i1 < 256 and is_integer(i2) and i2 < 256 and is_integer(i3) and
+             i3 < 256 and is_integer(i4) and i4 < 256,
+      do: match({cid, {:"$1", peer_address, :"$2", :"$3", :"$4"}})
+
   def exists(criteria) do
     case lookup(criteria) do
       {:ok, _} -> true
@@ -95,6 +102,9 @@ defmodule Xirsys.XTurn.Channels.Store do
   def delete(key),
     do: :ets.delete(__MODULE__, key)
 
+  def to_list(),
+    do: :ets.tab2list(__MODULE__)
+
   defp match(criteria) do
     lookup = Exts.match(__MODULE__, criteria)
     maybe_values(lookup)
@@ -103,6 +113,6 @@ defmodule Xirsys.XTurn.Channels.Store do
   defp maybe_values(%{values: clients}) when is_list(clients) and length(clients) > 0,
     do: {:ok, clients}
 
-  defp maybe_values(_),
+  defp maybe_values(e),
     do: {:error, :not_found}
 end

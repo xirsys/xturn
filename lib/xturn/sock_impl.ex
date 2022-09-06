@@ -110,7 +110,7 @@ defmodule Xirsys.XTurn.SockImpl do
           %{software: @software}
       end
 
-    fingerprint = turn.integrity
+    fingerprint = Application.get_env(:xturn, :use_fingerprint)
 
     msg = %Stun{turn | class: class, fingerprint: fingerprint, attrs: new_attrs}
 

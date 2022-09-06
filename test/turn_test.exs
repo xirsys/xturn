@@ -3,9 +3,8 @@ defmodule TurnTest do
   use ExUnit.Case, async: false
   require Logger
 
-  alias XMediaLib.Stun
   alias Xirsys.Sockets.Conn
-  alias Xirsys.XTurn.Pipeline
+  alias Xirsys.XTurn.{Stun, Pipeline}
   alias Xirsys.XTurn.Allocate.Client, as: AllocateClient
   alias Xirsys.Sockets.Socket
 
@@ -16,64 +15,72 @@ defmodule TurnTest do
     server_port: 8882
   }
   @alternate_ip {127, 0, 0, 3}
+  @key "guest:xturn.me:guest"
+  @hkey <<167, 133, 227, 10, 84, 29, 235, 132, 185, 220, 181, 166, 131, 75, 32, 16>>
+  @realm "xturn.me"
+  @username "guest"
+  @password "guest"
   @allocation %Stun{
     class: :request,
     method: :allocate,
     transactionid: 123_456_789_012,
+    key: @hkey,
     attrs: %{
       requested_transport: <<17, 0, 0, 0>>
     }
   }
-  @realm "xturn.me"
-  @username "guest"
-  @password "guest"
 
   test "allocates without authentication" do
+    Application.put_env(:xturn, :authentication, %{required: false, username: "guest", credential: "guest"})
+    Application.put_env(:xturn, :realm, "xturn.me")
+
     # store the current number of allocation workers
     {:ok, orig_workers} = AllocateClient.count()
 
     # create encoded STUN packet
     stun = Stun.encode(@allocation)
     # process
-    conn = Pipeline.process_message(%Conn{@conn | message: stun})
+    conn = Pipeline.process_message(%Conn{@conn | message: stun, force_auth: false})
 
     # response should be valid and contain reflexive IP and Port
+
     assert conn.response.class == :success,
-           "STUN request was successful"
+           "STUN request was unsuccessful"
 
     assert Map.get(conn.response.attrs, :xor_mapped_address) ==
              {@conn.client_ip, @conn.client_port},
-           "response has valid xor-mapped-address"
+           "response does not have valid xor-mapped-address"
 
     assert Map.has_key?(conn.response.attrs, :xor_relayed_address),
-           "response has valid xor-relayed-address"
+           "response does not have valid xor-relayed-address"
 
     # check an integer base port id is attributed
-    ip = Socket.server_ip()
-    {^ip, port} = Map.get(conn.response.attrs, :xor_relayed_address)
+    {server_ip, port} = Map.get(conn.response.attrs, :xor_relayed_address)
+
+    assert server_ip == @conn.server_ip
 
     assert is_integer(port),
-           "assigned port is an integer"
+           "assigned port is not an integer"
 
     assert Map.get(conn.response.attrs, :lifetime) == <<600::32>>,
-           "response contains a five minute TTL"
+           "response does not contain a five minute TTL"
 
     # assert that we now have one more allocation client
     {:ok, workers} = AllocateClient.count()
 
     assert workers == orig_workers + 1,
-           "an allocation worker has been created"
+           "an allocation worker has not been created"
   end
 
   test "allocates with authentication" do
+    Application.put_env(:xturn, :authentication, %{required: true, username: "guest", credential: "guest"})
+    Application.put_env(:xturn, :realm, "xturn.me")
+
     # store the current number of allocation workers
     {:ok, orig_workers} = AllocateClient.count()
 
-    # as we're authenticating, apply user and pass
-    attrs = Map.merge(@allocation.attrs, %{username: @username, password: @password})
-
     # create encoded STUN packet
-    stun = Stun.encode(%Stun{@allocation | attrs: attrs})
+    stun = Stun.encode(@allocation)
 
     conn =
       Pipeline.process_message(%Conn{
@@ -92,11 +99,13 @@ defmodule TurnTest do
 
     realm = Map.get(conn.decoded_message.attrs, :realm)
 
+    IO.inspect realm
+
     assert realm == @realm,
            "realm should be valid value for this TURN server"
 
-    # assign the realm to the attributes for the next pass
-    attrs = Map.merge(attrs, %{realm: realm})
+    # as we're authenticating, apply user and pass
+    attrs = Map.merge(@allocation.attrs, %{realm: realm, username: @username, password: @password})
 
     # re-encode updated data
     stun = Stun.encode(%Stun{@allocation | attrs: attrs})
@@ -122,8 +131,9 @@ defmodule TurnTest do
            "response has valid xor-relayed-address"
 
     # validate an assigned port and that it's an integer
-    ip = Socket.server_ip()
-    {^ip, port} = Map.get(conn.response.attrs, :xor_relayed_address)
+    {server_ip, port} = Map.get(conn.response.attrs, :xor_relayed_address)
+
+    assert server_ip == @conn.server_ip
 
     assert is_integer(port),
            "assigned port is an integer"

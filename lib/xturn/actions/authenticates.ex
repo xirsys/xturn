@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2020 Jahred Love and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -32,29 +32,32 @@ defmodule Xirsys.XTurn.Actions.Authenticates do
   alias Xirsys.Sockets.Conn
   alias Xirsys.XTurn.Stun
 
-  @auth Application.get_env(:xturn, :authentication)
-
   def process(
         %Conn{force_auth: force_auth, message: message, decoded_message: %Stun{attrs: attrs}} =
           conn
       ) do
     # Do the attributes contain username and realm?
-    with {:skip, false} <- {:skip, not (@auth.required or force_auth)},
-         true <- Map.has_key?(attrs, :username) and Map.has_key?(attrs, :realm),
+    with {:skip, false} <- {:skip, not (auth().required or force_auth)},
+         realm <- Application.get_env(:xturn, :realm),
+         true <- Map.has_key?(attrs, :username),
          # Re-decode STUN packet using integrity check
          %Stun{} = turn_dec <-
-           process_integrity(message, Map.get(attrs, :username), Map.get(attrs, :realm)) do
+           process_integrity(message, Map.get(attrs, :username), realm) do
       # Update and return connection object
       %Conn{conn | decoded_message: turn_dec}
     else
       {:skip, true} ->
         conn
 
-      _ ->
+      e ->
         # Something went wrong. Flag unauthorized
-        if @auth.required or force_auth do
+        if auth().required or force_auth do
           conn
-          |> Conn.response(401, "Unauthorized")
+          |> Conn.response(:error, %{
+            error_code: {401, "Unauthorized"},
+            nonce: Application.fetch_env!(:xturn, :nonce),
+            realm: Application.fetch_env!(:xturn, :realm)
+          })
           |> Conn.halt()
         else
           conn
@@ -69,8 +72,8 @@ defmodule Xirsys.XTurn.Actions.Authenticates do
   defp process_integrity(msg, username, realm) do
     Logger.info("Checking USERNAME #{inspect(username)}")
 
-    with ^username <- @auth.username,
-         key <- username <> ":" <> realm <> ":" <> @auth.credential,
+    with ^username <- auth().username,
+         key <- username <> ":" <> realm <> ":" <> auth().credential,
          _ <- Logger.info("KEY = #{inspect(key)}"),
          hkey <- :crypto.hash(:md5, key),
          {:ok, turn} <- Stun.decode(msg, hkey) do
@@ -81,4 +84,6 @@ defmodule Xirsys.XTurn.Actions.Authenticates do
         false
     end
   end
+
+  defp auth(), do: Application.get_env(:xturn, :authentication)
 end

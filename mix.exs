@@ -1,7 +1,7 @@
 defmodule Xirsys.XTurn.Mixfile do
   use Mix.Project
 
-  @version "0.1.3"
+  @version "0.1.14"
 
   def project do
     [
@@ -55,7 +55,8 @@ defmodule Xirsys.XTurn.Mixfile do
       {:xturn_sockets, "~> 1.0.0"},
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev},
-      {:exts, "~> 0.3.4"}
+      {:exts, "~> 0.3.4"},
+      {:mock, "~> 0.3.7", only: :test}
     ]
   end
 

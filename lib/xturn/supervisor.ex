@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2020 Jahred Love and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -59,13 +59,11 @@ defmodule Xirsys.XTurn.Supervisor do
       worker(listener(type), [cb, ip, port, false], id: id(type, port))
     rescue
       e ->
-        IO.inspect e
         nil
-    end 
+    end
   end
 
   defp terminate(reason, state) do
-    IO.inspect reason
     state
   end
 

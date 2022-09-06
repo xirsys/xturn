@@ -97,6 +97,9 @@ RUN tar -xvzf ${APP_NAME}-${APP_VERSION}.tar.gz && \
 COPY priv/scripts/docker-entrypoint.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/docker-entrypoint.sh
 
+# Copy cert files
+ADD certs ./certs
+
 # Copy detect external ip
 COPY priv/scripts/detect-external-ip.sh /usr/local/bin
 RUN chmod a+x /usr/local/bin/detect-external-ip.sh
@@ -105,7 +108,7 @@ RUN chmod a+x /usr/local/bin/detect-external-ip.sh
 RUN adduser -D ${APP_NAME} && \
     chown -R ${APP_NAME}: /opt/${APP_NAME}
 
-EXPOSE 80 443 3478 5349 10000 80/udp 443/udp 3478/udp 5349/udp
+EXPOSE 3478 3478/udp 5349 5349/udp
 
 USER ${APP_NAME}
 

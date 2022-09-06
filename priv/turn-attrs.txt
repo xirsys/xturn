@@ -46,3 +46,4 @@
 32848	x_vovida_secondary_address	attribute
 49153	connection_request_binding	value
 49154	binding_change	value
+49239	goog_network_info	value

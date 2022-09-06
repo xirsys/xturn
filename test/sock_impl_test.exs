@@ -3,7 +3,7 @@ defmodule SockImplTest do
   use ExUnit.Case
   require Logger
 
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
   alias Xirsys.XTurn.SockImpl
 
   test "processes complete binary payload" do
@@ -13,7 +13,7 @@ defmodule SockImplTest do
       file
       |> chunk()
       |> Enum.map(fn c ->
-        Stun.encode(%XMediaLib.Stun{
+        Stun.encode(%Stun{
           attrs: %{
             data: c,
             xor_peer_address: {{185, 136, 233, 160}, 58299}
@@ -32,7 +32,8 @@ defmodule SockImplTest do
       mapped
       |> process()
 
-    resp = processed
+    resp =
+      processed
       |> Enum.join("")
 
     assert String.length(resp) == String.length(file)
@@ -47,20 +48,22 @@ defmodule SockImplTest do
 
   defp process({handled, bin}) do
     with {processed, nbin} when not is_nil(processed) <- SockImpl.process_buffer(bin),
-         {:ok, %XMediaLib.Stun{attrs: %{
-             data: data,
-             xor_peer_address: {{185, 136, 233, 160}, 58299}
-           },
-           class: :indication,
-           method: :send,
-           transactionid: 36_001_151_279_674_394_614_990_592_304
-         }} <- Stun.decode(processed) do
+         {:ok,
+          %Stun{
+            attrs: %{
+              data: data,
+              xor_peer_address: {{185, 136, 233, 160}, 58299}
+            },
+            class: :indication,
+            method: :send,
+            transactionid: 36_001_151_279_674_394_614_990_592_304
+          }} <- Stun.decode(processed) do
       process({[data | handled], nbin})
     end
   end
 
   defp chunk(data, list \\ [])
-  defp chunk(<<c::binary-size(100), rest::binary()>>, list), do: chunk(rest, [c | list])
+  defp chunk(<<c::binary-size(100), rest::binary>>, list), do: chunk(rest, [c | list])
   defp chunk(<<>>, list), do: list
   defp chunk(c, list), do: [c | list]
 end

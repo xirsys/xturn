@@ -301,6 +301,9 @@ defmodule Xirsys.XTurn.Stun do
   end
 
   defp decode_attrs(<<type::size(16), item_length::size(16), bin::binary>>, len, tid, attrs) do
+    if type == 19 do
+      Logger.info("Data type size #{item_length} or #{byte_size(bin)}")
+    end
     item_length = min(item_length, byte_size(bin))
     whole_pkt? = item_length == byte_size(bin)
 
@@ -314,6 +317,7 @@ defmodule Xirsys.XTurn.Stun do
     <<value::binary-size(item_length), _::binary-size(padding_length), rest::binary>> = bin
     {t, v} = decode_attribute(type, value, tid)
     new_length = len - (2 + 2 + item_length + padding_length)
+
     decode_attrs(rest, new_length, tid, Map.put(attrs, t, v))
   end
 
@@ -537,12 +541,12 @@ defmodule Xirsys.XTurn.Stun do
   defp check_fingerprint(stun_binary) do
     s = byte_size(stun_binary) - 8
 
-    case stun_binary do
-      <<message::binary-size(s), 0x80::8, 0x28::8, 0x00::8, 0x04::8, _crc::32>> ->
-        <<h::size(16), old_size::size(16), payload::binary>> = message
-        new_size = old_size - 8
-        {true, <<h::size(16), new_size::size(16), payload::binary>>}
-
+    with <<message::binary-size(s), 0x80::8, 0x28::8, 0x00::8, 0x04::8, crc::32>> <- stun_binary,
+         ^crc <- bxor(:erlang.crc32(message), 0x5354554E),
+         <<h::size(16), old_size::size(16), payload::binary>> <- message,
+         new_size <- old_size - 8 do
+      {true, <<h::size(16), new_size::size(16), payload::binary>>}
+    else
       _ ->
         Logger.debug("No CRC was found in a STUN message.")
         {false, stun_binary}
@@ -581,14 +585,14 @@ defmodule Xirsys.XTurn.Stun do
       when byte_size(stun_binary) > 20 + 24 and not is_nil(key) ->
         do_check_integrity(stun_binary, integrity, message, key)
 
-      _ ->
+      e ->
         Logger.debug("No MESSAGE-INTEGRITY was found in STUN message.")
         {false, stun_binary}
     end
   end
 
   defp do_check_integrity(stun_binary, integrity, message, key) do
-    with ^integrity <- :crypto.hmac(:sha, key, message),
+    with ^integrity <- hmac_fun(:sha, key, message),
          <<h::size(16), old_size::size(16), payload::binary>> <- message,
          new_size <- old_size - 24 do
       {true, <<h::size(16), new_size::size(16), payload::binary>>}
@@ -606,7 +610,7 @@ defmodule Xirsys.XTurn.Stun do
   defp insert_integrity(stun_binary, key) do
     <<h::size(16), _::size(16), message::binary>> = stun_binary
     s = byte_size(stun_binary) + 24 - 20
-    integrity = :crypto.hmac(:sha, key, <<h::size(16), s::size(16), message::binary>>)
+    integrity = hmac_fun(:sha, key, <<h::size(16), s::size(16), message::binary>>)
 
     <<h::size(16), s::size(16), message::binary, 0x00::size(8), 0x08::size(8), 0x00::size(8),
       0x14::size(8), integrity::binary>>
@@ -625,5 +629,11 @@ defmodule Xirsys.XTurn.Stun do
       true -> bin
       _ -> :binary.decode_unsigned(bin)
     end
+  end
+
+  if System.otp_release() >= "22" do
+    defp hmac_fun(digest, key, message), do: :crypto.mac(:hmac, digest, key, message)
+  else
+    defp hmac_fun(digest, key, message), do: :crypto.hmac(digest, key, message)
   end
 end

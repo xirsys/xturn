@@ -41,7 +41,7 @@ The listening ports should be set, next.  Standard ports are already set, but it
               ],
       server_type: "turn",
       server_id: "turn.myserver.com",
-      server_ip: {127, 0, 0, 1},
+      server_ip: {0, 0, 0, 0},
       server_local_ip: {0, 0, 0, 0},
       certs: [
                {:certfile, "certs/server.crt"},
@@ -61,6 +61,7 @@ Note that `server_type` is a Xirsys thing and can be ignored.
 Future Plans
 ===
 
+- Profiling needed to make it faster.  It's gotten a bit slow with recent changes.
 - Create a rotating nonce
 - Get a decent user credential store working with decent timeout capability (it's a little limited at the moment).
 - Get RTP and RTCP working with a new MCU or SFU functionality
