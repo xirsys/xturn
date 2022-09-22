@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -31,7 +31,7 @@ defmodule Xirsys.XTurn.Actions.NotAllocationExists do
   require Logger
   alias Xirsys.XTurn.Allocate.Store
   alias Xirsys.Sockets.{Socket, Conn}
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
     # Create 5Tuple match criteria for search
@@ -51,9 +51,7 @@ defmodule Xirsys.XTurn.Actions.NotAllocationExists do
       _ ->
         # 5Tuple already created.
         Logger.info(
-          "Allocation already exists from ip:#{inspect(conn.client_ip)}, port:#{
-            inspect(conn.client_port)
-          }"
+          "Allocation already exists from ip:#{inspect(conn.client_ip)}, port:#{inspect(conn.client_port)}"
         )
 
         # Conn.response(conn, 437, "Allocation Mismatch")
@@ -62,7 +60,7 @@ defmodule Xirsys.XTurn.Actions.NotAllocationExists do
         nattrs = %{
           # reservation_token: <<0::64>>,
           xor_mapped_address: {conn.client_ip, conn.client_port},
-          xor_relayed_address: {Socket.server_ip(), port},
+          xor_relayed_address: {conn.server_ip, port},
           lifetime: <<600::32>>
         }
 

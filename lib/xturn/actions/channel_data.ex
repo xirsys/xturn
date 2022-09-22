@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -39,9 +39,9 @@ defmodule Xirsys.XTurn.Actions.ChannelData do
   end
 
   # If packet has a channel data header, then process as channel data throughput
-  def process(%Conn{message: <<channel::16, _length::16, data::binary>>} = conn) do
+  def process(%Conn{message: <<channel::16, len::16, data::binary-size(len), _rest::binary>>} = conn) do
     Logger.debug(
-      "channel data (#{byte_size(data)} bytes) received on channel #{inspect(channel)}"
+      "channel data (#{byte_size(data)} bytes) received on channel #{inspect(channel)}, #{len} == #{byte_size(data)}"
     )
 
     # Match on any protocol (though only :udp should exist)
@@ -57,7 +57,8 @@ defmodule Xirsys.XTurn.Actions.ChannelData do
         conn
 
       {:error, :not_found} ->
-        Logger.debug("channel #{inspect(channel)} does not exist in ETS")
+        Logger.debug("channel #{inspect(channel)} does not exist in ETS for tuple #{inspect(tuple5)}")
+        Logger.debug("existing channels: #{inspect(Channels.to_list())}")
         false
     end
   end

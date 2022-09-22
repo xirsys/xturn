@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -31,7 +31,7 @@ defmodule Xirsys.XTurn.Actions.SendIndication do
   alias Xirsys.XTurn.Allocate.Client, as: AllocateClient
   alias Xirsys.XTurn.Tuple5
   alias Xirsys.Sockets.Conn
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   def process(%Conn{is_control: true}) do
     Logger.debug("cannot send indications on control connection")

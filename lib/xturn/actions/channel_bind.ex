@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -32,7 +32,7 @@ defmodule Xirsys.XTurn.Actions.ChannelBind do
   alias Xirsys.XTurn.Allocate.Client, as: AllocateClient
   alias Xirsys.XTurn.Tuple5
   alias Xirsys.Sockets.Conn
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
     Logger.debug("channelbinding #{inspect(conn.decoded_message)}")
@@ -45,15 +45,14 @@ defmodule Xirsys.XTurn.Actions.ChannelBind do
          peer_address = {_, _} <- Map.get(attrs, :xor_peer_address),
          # Retrieve session 5Tuple
          tuple5 <- Tuple5.to_map(Tuple5.create(conn, :_)) do
+      exists_by_channel = Channels.exists({channel_number, tuple5})
+      exists_by_peer_address = Channels.exists({peer_address, tuple5})
       Logger.debug(
-        "#{Channels.exists({channel_number, tuple5})}, #{Channels.exists({peer_address, tuple5})} = #{
-          inspect(channel_number)
-        }"
+        "#{exists_by_channel}, #{exists_by_peer_address} = #{inspect(channel_number)}"
       )
 
       # Check if channel bind registration already exists
-      exists =
-        Channels.exists({channel_number, tuple5}) or Channels.exists({peer_address, tuple5})
+      exists = exists_by_channel or exists_by_peer_address
 
       # Maybe register (store) channel bind details
       do_channelbind(conn, channel_number, peer_address, tuple5, exists)

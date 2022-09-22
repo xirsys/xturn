@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: xturn-public-tcp
+spec:
+  ports:
+  - name: tcp-port
+    port: 3487
+    targetPort: 3487
+    protocol: TCP
+  - name: tls-port
+    port: 5349
+    targetPort: 5349
+    protocol: TCP
+  selector:
+    app: xturn
+  type: LoadBalancer

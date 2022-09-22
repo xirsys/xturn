@@ -1,6 +1,5 @@
-### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -40,7 +39,7 @@ defmodule Xirsys.XTurn.Allocate.Client do
   alias Xirsys.XTurn.Tuple5
   alias Xirsys.XTurn.Timing, as: Time
   alias Xirsys.Sockets.Socket
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   defmodule State do
     @moduledoc """
@@ -196,17 +195,17 @@ defmodule Xirsys.XTurn.Allocate.Client do
   def handle_info(:timeout, state),
     do: {:stop, :normal, state}
 
-  def handle_info({:udp, socket, ip, in_port, packet}, state) do
+  def handle_info({:udp, socket, pip, pport, packet}, state) do
     Logger.debug(
-      "udp data sent from peer #{inspect(ip)}:#{inspect(in_port)} in genserver #{inspect(self())}"
+      "udp data sent from peer #{inspect(pip)}:#{inspect(pport)} in genserver #{inspect(self())}"
     )
 
     Socket.setopts(socket)
 
-    with true <- not require_perms() or Cache.has_key?(state.permissions, ip) do
-      len = byte_size(packet)
-      Logger.debug("sending #{inspect(len)} bytes to client")
-      data = channel_or_stun(packet, {ip, in_port}, state.tuple5, len)
+    with true <- not require_perms() or Cache.has_key?(state.permissions, pip) do
+      Logger.debug("sending #{inspect(byte_size(packet))} bytes to client")
+
+      data = channel_or_stun(packet, {pip, pport}, state.tuple5)
 
       Socket.send(
         state.client_socket,
@@ -248,7 +247,7 @@ defmodule Xirsys.XTurn.Allocate.Client do
 
   def handle_call({:add_channel, channel_number, peer_address}, _from, state) do
     channel = %Channel{id: channel_number, tuple5: state.tuple5, peer_address: peer_address}
-    Logger.debug("ADDING CHANNEL #{inspect(channel_number)}")
+    Logger.debug("adding channel to allocation #{inspect(channel_number)} for peer #{inspect(peer_address)} and 5tuple #{inspect(state.tuple5)}")
 
     Channels.insert(
       channel_number,
@@ -258,6 +257,9 @@ defmodule Xirsys.XTurn.Allocate.Client do
       state.relayed_socket,
       state.channels
     )
+
+    exists = Channels.exists({peer_address, Tuple5.to_map(state.tuple5)})
+    Logger.debug("channel exists? #{exists}")
 
     Cache.append(state.channels, {channel_number, channel})
     {:reply, :ok, state, Time.milliseconds_left(state)}
@@ -307,6 +309,7 @@ defmodule Xirsys.XTurn.Allocate.Client do
   end
 
   def handle_cast({:send_indication, {pip, pport} = _peer_address, data}, state) do
+    Logger.debug("sending indication to peer #{byte_size(data)} bytes")
     with true <- Cache.has_key?(state.permissions, pip) do
       send_data(data, pip, pport, state)
 
@@ -345,7 +348,7 @@ defmodule Xirsys.XTurn.Allocate.Client do
   #########################################################################################################################
 
   defp open_port_call({policy, opts}, _from, state) do
-    case Socket.open_turn_port(Socket.server_local_ip(), policy, opts) do
+    case Socket.open_port(Socket.server_local_ip(), policy, opts) do
       {:ok, socket} ->
         {:ok, port} = Socket.port(socket)
 
@@ -366,38 +369,50 @@ defmodule Xirsys.XTurn.Allocate.Client do
 
   def send_data(msg, state) do
     t5 = state.tuple5
-    Logger.debug("Returning data on #{inspect(t5.client_address)}:#{inspect(t5.client_port)}")
+    Logger.debug("returning data on #{inspect(t5.client_address)}:#{inspect(t5.client_port)} with byte size #{byte_size(msg)}")
     send_data(msg, t5.client_address, t5.client_port, state)
   end
 
   def send_data(msg, cip, cport, %Socket{} = socket) do
-    Logger.debug("POSTING to #{inspect(cip)}:#{inspect(cport)} on socket #{inspect(socket)}")
+    Logger.debug("posting to #{inspect(cip)}:#{inspect(cport)} on socket #{inspect(socket)} with byte size #{byte_size(msg)}")
     Socket.send(socket, msg, cip, cport)
   end
 
   def send_data(msg, cip, cport, state) do
     Logger.debug(
-      "POSTING to #{inspect(cip)}:#{inspect(cport)} on relayed socket #{
+      "posting to #{inspect(cip)}:#{inspect(cport)} on relayed socket #{
         inspect(state.relayed_socket)
-      }"
+      } with byte size #{byte_size(msg)}"
     )
 
     Socket.send(state.relayed_socket, msg, cip, cport)
   end
 
   def send_data_channel(channel_number, data, socket, channel_cache) do
+    Logger.debug("sending channel #{channel_number} to peer #{byte_size(data)} bytes")
     {:ok, channel} = Cache.fetch(channel_cache, channel_number)
     {pip, pport} = channel.peer_address
     send_data(data, pip, pport, socket)
     byte_size(data)
   end
 
-  defp channel_or_stun(packet, {_, _} = peer_address, %Tuple5{} = tuple5, len) do
+  defp channel_or_stun(packet, {pip, _} = peer_address, %Tuple5{} = tuple5) do
     case Channels.lookup({peer_address, Tuple5.to_map(tuple5)}) do
-      {:ok, [[channel_number, _client] | _]} ->
-        <<channel_number::16, len::16>> <> packet
+      {:ok, [[channel_number | _] | _]} ->
+        Logger.debug("channel found for #{channel_number}")
 
-      _ ->
+        len = byte_size(packet)
+        case rem(len, 4) do
+          0 ->
+            <<channel_number::16, len::16>> <> packet
+
+          other ->
+            padding_bytes = (4 - other) * 8
+            <<channel_number::16, len::16>> <> packet <> <<0::size(padding_bytes)>>
+        end
+
+      e ->
+        Logger.debug("channel NOT found: #{inspect e}")
         attrs =
           %{}
           |> Map.put(:xor_peer_address, peer_address)

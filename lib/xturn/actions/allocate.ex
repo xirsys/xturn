@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -32,7 +32,7 @@ defmodule Xirsys.XTurn.Actions.Allocate do
   alias Xirsys.XTurn.Allocate.Client, as: AllocateClient
   alias Xirsys.XTurn.Tuple5
   alias Xirsys.Sockets.{Socket, Conn}
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   @tcp_proto <<6, 0, 0, 0>>
 
@@ -68,7 +68,7 @@ defmodule Xirsys.XTurn.Actions.Allocate do
     # Get permission cache Agent process reference
     {:ok, permission_cache} = AllocateClient.get_permission_cache(pid)
     # Create relay IP / port tuple...
-    relay_address = {Socket.server_ip(), port}
+    relay_address = {conn.server_ip, port}
     # ...and assign it to the allocation
     AllocateClient.set_relay_address(pid, relay_address)
 
@@ -86,7 +86,7 @@ defmodule Xirsys.XTurn.Actions.Allocate do
     nattrs = %{
       # reservation_token: <<0::64>>,
       xor_mapped_address: {conn.client_ip, conn.client_port},
-      xor_relayed_address: {Socket.server_ip(), port},
+      xor_relayed_address: {conn.server_ip, port},
       lifetime: <<600::32>>
     }
 

@@ -1,12 +1,14 @@
 defmodule Xirsys.XTurn.Mixfile do
   use Mix.Project
 
-  def project() do
+  @version "0.1.14"
+
+  def project do
     [
       app: :xturn,
       name: "xturn",
-      version: "0.1.2",
-      elixir: "~> 1.7",
+      version: @version,
+      elixir: "~> 1.9",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -18,13 +20,25 @@ defmodule Xirsys.XTurn.Mixfile do
         extras: ["README.md", "LICENSE.md"],
         main: "readme"
       ],
-      escript: [main_module: Xirsys.XTurn]
+      escript: [main_module: Xirsys.XTurn],
+      releases: [
+        xturn: [
+          version: @version,
+          include_executables_for: [:unix],
+          steps: [:assemble, :tar],
+          applications: [
+            xturn: :permanent,
+            xturn_sockets: :permanent
+          ]
+        ]
+      ]
     ]
   end
 
-  def application() do
+  def application do
     [
-      applications: [:crypto, :sasl, :logger, :ssl, :xmerl, :exts],
+      applications: [:sasl, :logger, :ssl, :xmerl, :exts, :xturn_sockets],
+      extra_applications: [:crypto],
       registered: [Xirsys.XTurn.Server],
       mod: {Xirsys.XTurn, []},
       logger: [compile_time_purge_level: :debug],
@@ -36,21 +50,20 @@ defmodule Xirsys.XTurn.Mixfile do
     ]
   end
 
-  defp deps() do
+  defp deps do
     [
-      {:xmedialib, "~> 0.1.2"},
-      {:xturn_sockets, "~> 0.1.1"},
-      {:xturn_cache, "~> 0.1.0"},
+      {:xturn_sockets, "~> 1.0.0"},
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev},
-      {:exts, "~> 0.3.4"}
+      {:exts, "~> 0.3.4"},
+      {:mock, "~> 0.3.7", only: :test}
     ]
   end
 
   defp package do
     %{
       files: ["lib", "mix.exs", "docs", "README.md", "LICENSE.md", "CHANGELOG.md"],
-      maintainers: ["Jahred Love"],
+      maintainers: ["Jahred Love <me@jah.red>"],
       licenses: ["Apache 2.0"],
       links: %{"Github" => "https://github.com/xirsys/xturn"}
     }

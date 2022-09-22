@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -29,7 +29,7 @@ defmodule Xirsys.XTurn.Actions.HasRequestedTransport do
   """
   require Logger
   alias Xirsys.Sockets.Conn
-  alias XMediaLib.Stun
+  alias Xirsys.XTurn.Stun
 
   @udp_proto <<17, 0, 0, 0>>
 
@@ -45,9 +45,7 @@ defmodule Xirsys.XTurn.Actions.HasRequestedTransport do
       false ->
         # Requested transport not in header
         Logger.error(
-          "Request transport not provided from ip:#{inspect(conn.client_ip)}, port:#{
-            inspect(conn.client_port)
-          }"
+          "Request transport not provided from ip:#{inspect(conn.client_ip)}, port:#{inspect(conn.client_port)}"
         )
 
         Conn.response(conn, 400, "Bad Request")
@@ -55,9 +53,7 @@ defmodule Xirsys.XTurn.Actions.HasRequestedTransport do
       _ ->
         # Only UDP supported. Not a WebRTC app?
         Logger.error(
-          "Unsupported transport protocol requested from ip:#{inspect(conn.client_ip)}, port:#{
-            inspect(conn.client_port)
-          }"
+          "Unsupported transport protocol requested from ip:#{inspect(conn.client_ip)}, port:#{inspect(conn.client_port)}"
         )
 
         Conn.response(conn, 442, "Unsupported Transport Protocol")

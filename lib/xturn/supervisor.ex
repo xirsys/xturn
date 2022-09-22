@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -30,7 +30,7 @@ defmodule Xirsys.XTurn.Supervisor do
   alias Xirsys.Sockets.SockSupervisor
 
   def start_link(listen, cb) do
-    Supervisor.start_link(__MODULE__, [listen, cb])
+    Supervisor.start_link(__MODULE__, [listen, cb], name: __MODULE__)
   end
 
   def init([list, cb]) do
@@ -41,6 +41,7 @@ defmodule Xirsys.XTurn.Supervisor do
       |> Enum.map(fn data ->
         start_listener(data, cb)
       end)
+      |> Enum.reject(&is_nil/1)
 
     supervise(
       [
@@ -53,8 +54,17 @@ defmodule Xirsys.XTurn.Supervisor do
   end
 
   defp start_listener({type, ipStr, port}, cb) do
-    {:ok, ip} = :inet_parse.address(ipStr)
-    worker(listener(type), [cb, ip, port, false], id: id(type, port))
+    try do
+      {:ok, ip} = :inet_parse.address(ipStr)
+      worker(listener(type), [cb, ip, port, false], id: id(type, port))
+    rescue
+      e ->
+        nil
+    end
+  end
+
+  defp terminate(reason, state) do
+    state
   end
 
   defp start_listener({type, ipStr, port, secure}, cb) do

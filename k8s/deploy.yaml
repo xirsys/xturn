@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xturn-deployment
+  labels:
+    app: xturn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xturn
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 34%
+      maxUnavailable: 34%
+  template:
+    metadata:
+      name: xturn
+      labels:
+        app: xturn
+    spec:
+      containers:
+      - name: xturn
+        image: xirdev/xturn:latest
+        env:
+          - name: MIX_ENV
+            value: prod
+          - name: RELEASE_COOKIE
+            value: xturn-secret-cookie
+          - name: SECRET_KEY_BASE
+            value: secret-key-base
+          - name: REALM
+            value: xturn
+          - name: SERVER_IP
+            value: "74.220.18.220"  # XXX: Replace this with your service IP
+          - name: APP_HOST_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.hostIP
+          - name: SERVER_LOCAL_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.hostIP
+        resources: {}
+        securityContext:
+          privileged: false
+          procMount: Default
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

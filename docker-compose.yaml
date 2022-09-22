@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  xturn:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+      args:
+        APP_NAME: xturn
+        APP_VERSION: 0.1.3
+    # image: xirdev/xturn:latest
+    # stdin_open: true # docker run -i
+    # tty: true        # docker run -t
+    restart: always
+    # network_mode: host
+    networks:
+    - turn-network
+    environment:
+      LANG: "en_US.UTF-8"
+      LANGUAGE: "en_US.UTF-8"
+      LC_ALL: "en_US.UTF-8"
+      MIX_ENV: "prod"
+      REALM: "xturn"
+      SERVER_IP: "127.0.0.1"
+      CA_CRT: "certs/xturn.ca.pem"
+      SERVER_CRT: "certs/xturn.cert.pem"
+      SERVER_KEY: "certs/xturn.key.pem"
+    ports:
+## STUN/TURN
+      - "3478"
+      - "3478/udp"
+      - "80"
+      - "80/udp"
+## STUN/TURN SSL
+      - "5349"
+      - "5349/udp"
+      - "443"
+      - "443/udp"
+# ## Relay Ports
+#       - "49152-65535/udp"
+
+networks:
+  turn-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24
