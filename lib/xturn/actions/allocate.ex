@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -22,21 +22,29 @@
 ###
 ### ----------------------------------------------------------------------
 
-defmodule Xirsys.XTurn.Actions.Allocate do
+defmodule XTurn.Actions.Allocate do
   @doc """
   Dispatches a new process to cater for the client and his/her peers, whether
   send/receive or channels.
   """
   require Logger
-  alias Xirsys.XTurn.Allocate.Store
-  alias Xirsys.XTurn.Allocate.Client, as: AllocateClient
-  alias Xirsys.XTurn.Tuple5
-  alias Xirsys.Sockets.{Socket, Conn}
-  alias XMediaLib.Stun
+  alias XTurn.{Stun, Conn, Utils, PeerImpl, PeerSupervisor}
 
   @tcp_proto <<6, 0, 0, 0>>
+  @software "XTurn 2.0"
 
-  def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
+  def process(%Conn{halt: true} = conn), do: conn
+
+  def process(
+        %Conn{
+          turn: %Stun{method: method, transactionid: tid, attrs: attrs},
+          socket: socket,
+          client_addr: {client_ip, client_port} = client_addr,
+          transport: transport,
+          state: state
+        } = conn
+      ) do
+    Logger.debug("allocating")
     # Acquire the transport type. Currently always :udp
     proto = Map.get(attrs, :requested_transport)
 
@@ -46,54 +54,44 @@ defmodule Xirsys.XTurn.Actions.Allocate do
         do: [{:raw, 0, 10, <<2::native-size(32)>>}],
         else: []
 
-    # Create a new 5Tuple reference. Overwrites if already exists.
-    tuple5 = Tuple5.create(conn, proto)
     # TTL for the allocation is 600. This is standard
-    lifetime = 600
+    lifetime = Utils.timestamp() + 600
+    state = Map.put(state, :allocation, lifetime)
 
-    # Create the actual allocation process
-    {:ok, pid} =
-      AllocateClient.create(
-        conn.decoded_message.transactionid,
-        conn.client_socket,
-        tuple5,
-        lifetime
-      )
-
-    # Assign peer details to allocation. Currently, allocations support a single peer, since
-    # WebRTC only supports single peers per allocation.
-    AllocateClient.set_peer_details(pid, conn.decoded_message.ns, conn.decoded_message.peer_id)
     # Open the peer port
-    {:ok, socket, port} = AllocateClient.open_port_random(pid, opts)
-    # Get permission cache Agent process reference
-    {:ok, permission_cache} = AllocateClient.get_permission_cache(pid)
-    # Create relay IP / port tuple...
-    relay_address = {Socket.server_ip(), port}
-    # ...and assign it to the allocation
-    AllocateClient.set_relay_address(pid, relay_address)
+    {:ok, psocket} =
+      :gen_udp.open(0, [
+        {:buffer, 1024 * 1024 * 1024},
+        {:recbuf, 1024 * 1024 * 1024},
+        {:sndbuf, 1024 * 1024 * 1024},
+        :binary
+      ])
 
-    # Store 5Tuple into local db
-    Store.insert(
-      conn.decoded_message.transactionid,
-      pid,
-      relay_address,
-      tuple5,
-      socket,
-      permission_cache
-    )
+    state = Map.put(state, :peer_socket, psocket)
+
+    {:ok, {server_ip, server_port}} = :inet.sockname(psocket)
+
+    peer_name = PeerImpl.impl_name({client_ip, client_port})
+
+    {:ok, pid} = PeerSupervisor.start_peer(peer_name, psocket, socket, client_addr, transport)
+
+    PeerImpl.set_allocation({client_ip, client_port}, lifetime)
+
+    :gen_udp.controlling_process(psocket, pid)
 
     # Build attributes to send back to client
     nattrs = %{
       # reservation_token: <<0::64>>,
-      xor_mapped_address: {conn.client_ip, conn.client_port},
-      xor_relayed_address: {Socket.server_ip(), port},
-      lifetime: <<600::32>>
+      xor_relayed_address: {server_ip, server_port},
+      xor_mapped_address: {client_ip, client_port},
+      lifetime: <<600::32>>,
+      software: @software
     }
 
-    Logger.debug("integrity = #{conn.decoded_message.integrity}")
-    # turn2 = %Stun{conn.decoded_message | integrity: :true}
-    Logger.debug("Allocated")
-    # Notify client
-    Conn.response(conn, :success, nattrs)
+    %Conn{
+      conn
+      | resp: %Stun{class: :success, method: method, transactionid: tid, key: Map.get(state, :key), attrs: nattrs},
+        state: state
+    }
   end
 end

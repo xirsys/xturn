@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -22,57 +22,59 @@
 ###
 ### ----------------------------------------------------------------------
 
-defmodule Xirsys.XTurn.Actions.NotAllocationExists do
+defmodule XTurn.Actions.NotAllocationExists do
   @doc """
   Checks if the current 5-tuple has previously been used. If so,
   then this is a duplicate allocation request and can be safely
   ignored.
   """
   require Logger
-  alias Xirsys.XTurn.Allocate.Store
-  alias Xirsys.Sockets.{Socket, Conn}
-  alias XMediaLib.Stun
+  alias XTurn.{Stun, Conn, Utils}
 
-  def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
-    # Create 5Tuple match criteria for search
-    tup5 = [
-      {:ca, conn.client_ip},
-      {:cp, conn.client_port},
-      {:sa, Socket.server_ip()},
-      {:sp, conn.server_port},
-      {:proto, Map.get(attrs, :requested_transport)}
-    ]
+  def process(%Conn{halt: true} = conn), do: conn
 
-    # 5Tuple not yet exists?
-    with false <- Store.exists(tup5) do
-      # Then we're good
-      conn
-    else
+  def process(
+        %Conn{
+          turn: %Stun{method: method, transactionid: tid} = turn,
+          socket: socket,
+          client_addr: {client_ip, client_port},
+          state: state
+        } = conn
+      ) do
+    Logger.debug("not_allocation_exists")
+    allocation = Map.get(state, :allocation, 0)
+
+    case is_integer(allocation) and allocation > Utils.timestamp() do
+      false ->
+        conn
+
       _ ->
-        # 5Tuple already created.
-        Logger.info(
-          "Allocation already exists from ip:#{inspect(conn.client_ip)}, port:#{
-            inspect(conn.client_port)
-          }"
-        )
+        {:ok, {server_ip, server_port}} = :inet.sockname(socket)
 
-        # Conn.response(conn, 437, "Allocation Mismatch")
-        {:ok, [_client, {_ip, port}, _, _]} = Store.lookup(tup5)
+        Logger.info(
+          "Allocation already exists from ip:#{inspect(client_ip)}, port:#{inspect(client_port)}"
+        )
 
         nattrs = %{
           # reservation_token: <<0::64>>,
-          xor_mapped_address: {conn.client_ip, conn.client_port},
-          xor_relayed_address: {Socket.server_ip(), port},
+          xor_mapped_address: {client_ip, client_port},
+          xor_relayed_address: {server_ip, server_port},
           lifetime: <<600::32>>
         }
 
+        lifetime = Utils.timestamp() + 600
+        state = Map.put(state, :allocation, lifetime)
+
         # Respond positively, since this is not an error.
-        Logger.debug("integrity = #{conn.decoded_message.integrity}")
+        Logger.debug("integrity = #{turn.integrity}")
         Logger.debug("Allocated")
 
-        conn
-        |> Conn.response(:success, nattrs)
-        |> Conn.halt()
+        %Conn{
+          conn
+          | halt: true,
+            resp: %Stun{class: :success, method: method, transactionid: tid, attrs: nattrs},
+            state: state
+        }
     end
   end
 end

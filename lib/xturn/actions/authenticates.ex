@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -22,43 +22,58 @@
 ###
 ### ----------------------------------------------------------------------
 
-defmodule Xirsys.XTurn.Actions.Authenticates do
+defmodule XTurn.Actions.Authenticates do
   @doc """
   Authenticates the calling user. Any authentication requests
   without integrity and user credentials can be allowed
   via config.
   """
   require Logger
-  alias Xirsys.Sockets.Conn
-  alias XMediaLib.Stun
+  alias XTurn.{Stun, Conn, Utils}
 
-  @auth Application.get_env(:xturn, :authentication)
+  @nonce Application.get_env(:xturn, :nonce)
+  @realm Application.get_env(:xturn, :realm)
+
+  def process(%Conn{halt: true} = conn), do: conn
 
   def process(
-        %Conn{force_auth: force_auth, message: message, decoded_message: %Stun{attrs: attrs}} =
-          conn
-      ) do
-    # Do the attributes contain username and realm?
-    with {:skip, false} <- {:skip, not (@auth.required or force_auth)},
-         true <- Map.has_key?(attrs, :username) and Map.has_key?(attrs, :realm),
-         # Re-decode STUN packet using integrity check
-         %Stun{} = turn_dec <-
-           process_integrity(message, Map.get(attrs, :username), Map.get(attrs, :realm)) do
-      # Update and return connection object
-      %Conn{conn | decoded_message: turn_dec}
-    else
-      {:skip, true} ->
-        conn
+        %Conn{
+          pkt: pkt,
+          turn: %Stun{method: method, attrs: %{username: username}, transactionid: tid} = turn,
+          state: %{username: username, key: hkey} = state
+        } = conn
+      ) when not is_nil(username) and not is_nil(hkey) do
+    %Conn{conn | turn: %Stun{turn | key: hkey}}
+  end
 
-      _ ->
+  def process(
+        %Conn{
+          pkt: pkt,
+          turn: %Stun{method: method, attrs: attrs, transactionid: tid},
+          state: state
+        } = conn
+      ) do
+    Logger.debug("authenticating, #{inspect attrs}")
+    # Do the attributes contain username and realm?
+    with {realm, :realm} <- {Application.get_env(:xturn, :realm), :realm},
+         {username, :username} when not is_nil(username) <- {Map.get(attrs, :username), :username},
+         # Re-decode STUN packet using integrity check
+         {%Stun{key: hkey} = turn_dec, :stun} <- {process_integrity(pkt, username, realm), :stun} do
+      # Update and return connection object
+      %Conn{conn | turn: turn_dec, state: Map.put(state, :username, username) |> Map.put(:key, hkey)}
+    else
+      e ->
+        Logger.debug("#{inspect e}")
         # Something went wrong. Flag unauthorized
-        if @auth.required or force_auth do
+        nattrs = Map.put(attrs, :error_code, {401, "Unauthorized"})
+        nattrs = Map.put(nattrs, :nonce, @nonce)
+        nattrs = Map.put(nattrs, :realm, @realm)
+
+        %Conn{
           conn
-          |> Conn.response(401, "Unauthorized")
-          |> Conn.halt()
-        else
-          conn
-        end
+          | halt: true,
+            resp: %Stun{class: :error, method: method, transactionid: tid, attrs: nattrs}
+        }
     end
   end
 
@@ -66,19 +81,29 @@ defmodule Xirsys.XTurn.Actions.Authenticates do
   # This forces TURN authentication requirements.
 
   ### TODO: Correctly implement custom XirSys authentication to TURN spec [RFC5766]
-  defp process_integrity(msg, username, realm) do
+  defp process_integrity(pkt, username, realm) do
     Logger.info("Checking USERNAME #{inspect(username)}")
 
-    with ^username <- @auth.username,
-         key <- username <> ":" <> realm <> ":" <> @auth.credential,
-         _ <- Logger.info("KEY = #{inspect(key)}"),
+    with secret <- Application.get_env(:xturn, :turn_key),
+         [ttl, un] <- String.split(username, ":"),
+         ts <- Utils.timestamp(),
+         {int_val, ""} when int_val > ts <- Integer.parse(ttl),
+         credential <- hmac_fun(:sha, secret, username) |> Base.encode64(),
+         key <- username <> ":" <> realm <> ":" <> credential,
          hkey <- :crypto.hash(:md5, key),
-         {:ok, turn} <- Stun.decode(msg, hkey) do
+         {:ok, turn} <- Stun.decode(pkt, hkey) do
+      Logger.debug("credential: #{inspect credential}")
       %Stun{turn | key: hkey}
     else
       e ->
         Logger.warn("Integrity process failed: #{inspect(e)}")
-        false
+        nil
     end
+  end
+
+  if System.otp_release() >= "22" do
+    defp hmac_fun(digest, key, message), do: :crypto.mac(:hmac, digest, key, message)
+  else
+    defp hmac_fun(digest, key, message), do: :crypto.hmac(digest, key, message)
   end
 end

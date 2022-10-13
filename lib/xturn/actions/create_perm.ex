@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -22,40 +22,81 @@
 ###
 ### ----------------------------------------------------------------------
 
-defmodule Xirsys.XTurn.Actions.CreatePerm do
+defmodule XTurn.Actions.CreatePerm do
   @doc """
   Assigns a permission for a peer on a given client allocation
   """
   require Logger
-  alias Xirsys.XTurn.Allocate.Store
-  alias Xirsys.XTurn.Allocate.Client, as: AllocateClient
-  alias Xirsys.XTurn.Tuple5
-  alias Xirsys.Sockets.Conn
-  alias XMediaLib.Stun
+  alias XTurn.{Stun, Conn, Utils, PeerImpl}
+
+  @nonce Application.get_env(:xturn, :nonce)
+  @realm Application.get_env(:xturn, :realm)
+
+  def process(%Conn{halt: true} = conn), do: conn
 
   # Associates a peer reflexive IP and port with a given allocation session
-  def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
-    Logger.debug("creating a permission #{inspect(conn.decoded_message)}")
-    # Get associated 5Tuple
-    tuple5 = Tuple5.to_map(Tuple5.create(conn, :_))
+  def process(
+        %Conn{
+          turn: %Stun{method: method, transactionid: tid, attrs: attrs} = turn,
+          socket: socket,
+          client_addr: caddr,
+          state: state
+        } = conn
+      ) do
+    Logger.debug("creating a permission")
 
     # Extract peer address
     with {_ip, _port} = p <- Map.get(attrs, :xor_peer_address),
-         # Lookup allocation from store
-         {:ok, [client, _peer_address, _, _]} <- Store.lookup(tuple5) do
-      Logger.debug("createperm #{inspect(client)}, #{inspect(p)}")
-      AllocateClient.add_permissions(client, p)
-      Conn.response(conn, :success)
+         ttl <- Map.get(state, :allocation, 0),
+         true <- ttl > Utils.timestamp() do
+      Logger.debug("createperm")
+
+      permissions = Map.get(state, :permissions, [])
+
+      permissions =
+        case Enum.find_index(permissions, fn {addr, _} -> addr == p end) do
+          nil ->
+            [{p, Utils.timestamp() + 600} | permissions]
+
+          indx when is_integer(indx) ->
+            List.replace_at(permissions, indx, {p, Utils.timestamp() + 600})
+        end
+
+      PeerImpl.set_permissions(caddr, permissions)
+
+      %Conn{
+        conn
+        | resp: %Stun{class: :success, method: method, transactionid: tid, key: Map.get(state, :key), attrs: attrs},
+          state: Map.put(state, :permissions, permissions)
+      }
     else
-      {:error, _} ->
+      false ->
         # No allocation registered for 5Tuple
-        Logger.debug("client does not exist #{inspect(tuple5)} (createperm)")
-        Conn.response(conn, 400, "Bad Request")
+        Logger.debug("client does not exist (createperm)")
+
+        nattrs = Map.put(attrs, :nonce, @nonce)
+        nattrs = Map.put(nattrs, :realm, @realm)
+        nattrs = Map.put(nattrs, :error_code, {400, "Bad Request"})
+
+        %Conn{
+          conn
+          | halt: true,
+            resp: %Stun{class: :error, method: method, transactionid: tid, attrs: nattrs}
+        }
 
       _ ->
         # Permission data not present in packet
         Logger.debug("no permissions sent")
-        Conn.response(conn, 400, "Bad Request")
+
+        nattrs = Map.put(attrs, :nonce, @nonce)
+        nattrs = Map.put(nattrs, :realm, @realm)
+        nattrs = Map.put(nattrs, :error_code, {400, "Bad Request"})
+
+        %Conn{
+          conn
+          | halt: true,
+            resp: %Stun{class: :error, method: method, transactionid: tid, attrs: nattrs}
+        }
     end
   end
 end

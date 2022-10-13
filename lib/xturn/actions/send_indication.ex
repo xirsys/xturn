@@ -1,6 +1,6 @@
 ### ----------------------------------------------------------------------
 ###
-### Copyright (c) 2013 - 2018 Lee Sylvester and Xirsys LLC <experts@xirsys.com>
+### Copyright (c) 2013 - 2022 Jahred Love and Xirsys LLC <experts@xirsys.com>
 ###
 ### All rights reserved.
 ###
@@ -22,51 +22,71 @@
 ###
 ### ----------------------------------------------------------------------
 
-defmodule Xirsys.XTurn.Actions.SendIndication do
+defmodule XTurn.Actions.SendIndication do
   @doc """
   Sends data to a given peer
   """
   require Logger
-  alias Xirsys.XTurn.Allocate.Store
-  alias Xirsys.XTurn.Allocate.Client, as: AllocateClient
-  alias Xirsys.XTurn.Tuple5
-  alias Xirsys.Sockets.Conn
-  alias XMediaLib.Stun
+  alias XTurn.{Stun, Conn, Utils}
 
-  def process(%Conn{is_control: true}) do
-    Logger.debug("cannot send indications on control connection")
-    false
-  end
+  @nonce Application.get_env(:xturn, :nonce)
+  @realm Application.get_env(:xturn, :realm)
+
+  def process(%Conn{halt: true} = conn), do: conn
 
   # Handles sending data from Client to Peer
-  def process(%Conn{decoded_message: %Stun{attrs: attrs}} = conn) do
-    Logger.debug("send indication #{inspect(conn.decoded_message)}")
-    # Get 5Tuple lookup match
-    tuple5 = Tuple5.to_map(Tuple5.create(conn, :_))
-
+  def process(
+        %Conn{
+          turn: %Stun{method: method, transactionid: tid, attrs: attrs} = turn,
+          state: state
+        } = conn
+      ) do
     # Data present in header? Receiver address present?
-    with true <- Map.has_key?(attrs, :data) and Map.has_key?(attrs, :xor_peer_address),
+    with ts <- Utils.timestamp(),
+         {ttl, :allocation} when ttl > ts <- {Map.get(state, :allocation, 0), :allocation},
+         {psocket, :peer_socket} <- {Map.get(state, :peer_socket, nil), :peer_socket},
          # Extract data
-         data <- Map.get(attrs, :data),
+         {data, :data} when not is_nil(data) <- {Map.get(attrs, :data), :data},
          # Extract receiver address
-         peer_address = {_pip, _port} <- Map.get(attrs, :xor_peer_address),
-         # Get 5Tuple registration
-         {:ok, [client, {_relay_ip, _relay_port}, socket, permission_cache]} <-
-           Store.lookup(tuple5) do
-      Logger.debug("sending indication to peer")
+         {{pip, pport}, :xor_peer_address} <-
+           {Map.get(attrs, :xor_peer_address), :xor_peer_address},
+         {info, :port} when not is_nil(info) <- {Port.info(psocket), :port} do
+      Logger.debug("sending indication to peer #{inspect({pip, pport})}")
       # Transmit data to peer
-      AllocateClient.send_indication(client, peer_address, data, socket, permission_cache)
-      conn
+      :gen_udp.send(psocket, pip, pport, data)
+      nil
     else
-      {:error, _} ->
+      false ->
         # 5Tuple not present, so allocation must not be valid (or present)
-        Logger.debug("client does not exist #{inspect(tuple5)} (send indication)")
-        false
+        Logger.debug("client does not exist (send indication)")
 
-      _ ->
+        nattrs = Map.put(attrs, :nonce, @nonce)
+        nattrs = Map.put(nattrs, :realm, @realm)
+        nattrs = Map.put(nattrs, :error_code, {401, "Unauthorized"})
+
+        %Conn{
+          conn
+          | halt: true,
+            resp: %Stun{class: :error, method: method, transactionid: tid, attrs: nattrs}
+        }
+
+      {_, :allocation} ->
+        Logger.debug("No valid allocation")
+        nil
+
+      {data, :data} ->
         # Missing data from STUN packet header
-        Logger.debug("Required attributes not found during send indication")
-        false
+        Logger.debug("No data in request #{inspect(data)}")
+        nil
+
+      {peer_address, :xor_peer_address} ->
+        # Missing data from STUN packet header
+        Logger.debug("XOR peer address not valid or present #{inspect(peer_address)}")
+        nil
+
+      {_, :port} ->
+        Logger.debug("Peer port not valid or closed")
+        nil
     end
   end
 end

@@ -1,32 +1,23 @@
-defmodule Xirsys.XTurn.Mixfile do
+defmodule XTurn.MixProject do
   use Mix.Project
 
-  def project() do
+  def project do
     [
       app: :xturn,
-      name: "xturn",
-      version: "0.1.2",
-      elixir: "~> 1.7",
-      build_embedded: Mix.env() == :prod,
+      version: "0.1.0",
+      elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
-      deps: deps(),
-      description: "Xirsys XTurn TURN Server.",
-      source_url: "https://github.com/xirsys/xturn",
-      homepage_url: "https://xturn.me",
-      package: package(),
-      docs: [
-        extras: ["README.md", "LICENSE.md"],
-        main: "readme"
-      ],
-      escript: [main_module: Xirsys.XTurn]
+      deps: deps()
     ]
   end
 
-  def application() do
+  # Run "mix help compile.app" to learn about applications.
+  def application do
     [
-      applications: [:crypto, :sasl, :logger, :ssl, :xmerl, :exts],
-      registered: [Xirsys.XTurn.Server],
-      mod: {Xirsys.XTurn, []},
+      applications: [:sasl, :logger, :ssl, :xmerl, :ranch, :socket],
+      extra_applications: [:crypto],
+      registered: [XTurn.Server],
+      mod: {XTurn, []},
       logger: [compile_time_purge_level: :debug],
       env: [
         node_name: "xturn",
@@ -36,23 +27,12 @@ defmodule Xirsys.XTurn.Mixfile do
     ]
   end
 
-  defp deps() do
+  # Run "mix help deps" to learn about dependencies.
+  defp deps do
     [
-      {:xmedialib, "~> 0.1.2"},
-      {:xturn_sockets, "~> 0.1.1"},
-      {:xturn_cache, "~> 0.1.0"},
-      {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
-      {:ex_doc, ">= 0.0.0", only: :dev},
-      {:exts, "~> 0.3.4"}
+      # {:dep_from_hexpm, "~> 0.3.0"},
+      {:ranch, "~> 2.1"},
+      {:socket, github: "Lazarus404/elixir-socket"}
     ]
-  end
-
-  defp package do
-    %{
-      files: ["lib", "mix.exs", "docs", "README.md", "LICENSE.md", "CHANGELOG.md"],
-      maintainers: ["Jahred Love"],
-      licenses: ["Apache 2.0"],
-      links: %{"Github" => "https://github.com/xirsys/xturn"}
-    }
   end
 end
